@@ -40,8 +40,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import androidx.room.Transaction
 import com.example.expensetracker.Room.TransactionEntity
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -54,6 +56,11 @@ fun AddTransactions(
     navController: NavController = rememberNavController() // Single instance
 
 ) {
+
+    LaunchedEffect(Unit) {
+        viewModel.clearFields()
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Background Image
         Box(
@@ -81,7 +88,7 @@ fun AddTransactions(
                 shadowElevation = 2.dp,
                 color = Color.White
             ) {
-                dataform(
+                Dataform(
                     id = 0L,
                     viewmodel = viewModel,
                     navController = navController
@@ -117,12 +124,12 @@ fun PreviewTransacTextField() {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun dataform(
+fun Dataform(
     modifier: Modifier = Modifier,
     id: Long,
     viewmodel: Transacviewmodel, // Non-nullable
     navController: NavController,
-
+    transaction: Transaction? = null  // null means new transaction
 
     ) {
     Column(
@@ -194,19 +201,15 @@ fun dataform(
                     ).show()
 
                     navController.navigate(AllTransac) {
-                        popUpTo(AllTransac) { inclusive = false }
-                        // Clear back stack up to Home if coming from Add
-                        if (id == 0L) {
-                            popUpTo(HomeScrn) { inclusive = false }
-                        }
-                    }
-                }
+                        popUpTo(HomeScrn) { inclusive = false } // Always go back to Home
+                    }}
+
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(100.dp)
         ) {
-            Text("Submit", fontSize = 18.sp)
+            Text(if (transaction != null) "Update" else "Save")
         }
 
     }

@@ -18,7 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -77,7 +76,7 @@ fun UpdateTransactions(
 
 
                      */
-                    dataform(
+                    Dataform(
                         id = id,
                         viewmodel = viewModel,
                         navController = navController

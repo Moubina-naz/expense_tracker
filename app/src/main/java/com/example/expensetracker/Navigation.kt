@@ -48,7 +48,7 @@ fun Navigation(viewModel : Transacviewmodel = viewModel(),
             Alltransaction(viewModel = viewModel, navController = navController)
         }
         composable<UpdateTransac> { backStackEntry ->
-            val args = backStackEntry.toRoute<UpdateTransac>() // 👈 deserialize
+            val args = backStackEntry.toRoute<UpdateTransac>()
             UpdateTransactions(id = args.id, viewModel = viewModel, navController = navController)
         }
     }
