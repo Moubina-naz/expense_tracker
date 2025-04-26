@@ -21,7 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.expensetracker.CategoryItem
+import com.example.expensetracker.Room.CategoryItem
 
 //import com.example.expensetracker.models.CategoryItem
 

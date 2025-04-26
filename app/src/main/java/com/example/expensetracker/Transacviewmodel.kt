@@ -1,12 +1,15 @@
 package com.example.expensetracker
 
-import android.content.Context
 import android.icu.text.SimpleDateFormat
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.expensetracker.Room.CategoryItem
+import com.example.expensetracker.Room.Graph
+import com.example.expensetracker.Room.TransactionEntity
+import com.example.expensetracker.Room.TransactionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,7 +18,9 @@ import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.Locale
 
-class Transacviewmodel(private val repository : TransactionRepository): ViewModel() {
+class Transacviewmodel(
+    private val repository : TransactionRepository = Graph.TransactionRepository)
+    : ViewModel() {
 
     var transacTitlestate by mutableStateOf("")
     var transacAmountstate by mutableStateOf("")
@@ -119,7 +124,7 @@ class Transacviewmodel(private val repository : TransactionRepository): ViewMode
       transacIconstate=category.iconRes
   }
 
-    fun getTransacById(id:Long):TransactionEntity? {
+    fun getTransacById(id:Long): TransactionEntity? {
         return transactionList.value.find { it.id == id }
     }
 

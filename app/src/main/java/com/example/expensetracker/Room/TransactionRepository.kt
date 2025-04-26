@@ -1,6 +1,7 @@
-package com.example.expensetracker
+package com.example.expensetracker.Room
 
-import android.content.Context
+import com.example.expensetracker.Room.TransactionDao
+import com.example.expensetracker.Room.TransactionEntity
 import kotlinx.coroutines.flow.Flow
 
 class TransactionRepository(private val dao: TransactionDao) {
@@ -23,22 +24,6 @@ class TransactionRepository(private val dao: TransactionDao) {
     }
 
 
-   /* companion object {
-        @Volatile
-        private var INSTANCE: TransactionRepository? = null
-
-        fun getInstance(context: Context): TransactionRepository {
-            return INSTANCE ?: synchronized(this) {
-                val database = TransactionsDatabase.getDatabase(context)
-                val dao = database.transactionDao()
-                val instance = TransactionRepository(dao)
-                INSTANCE = instance
-                instance
-            }
-        }
-    }
-
-    */
 
    }
 

@@ -36,13 +36,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.material3.Surface
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.example.expensetracker.Room.TransactionEntity
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -162,7 +162,13 @@ fun dataform(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-
+        val t = TransactionEntity(
+            id = viewmodel.currentEditingId ?: 0L,
+            title = viewmodel.transacTitlestate,
+            amount = viewmodel.transacAmountstate,
+            date = viewmodel.transacDatestate,
+            icon = viewmodel.transacIconstate
+        )
         val Categories = viewmodel?.categories ?: emptyList()
 
         Box(modifier = Modifier.height(300.dp)) {
@@ -180,7 +186,7 @@ fun dataform(
                     viewmodel.transacAmountstate.isNotEmpty() &&
                     viewmodel.transacDatestate.isNotEmpty()) {
 
-                    viewmodel.addTransaction()
+                    viewmodel.addTransaction(t)
                     Toast.makeText(
                         context,
                         if (id != 0L) "Transaction Updated" else "Transaction Added",

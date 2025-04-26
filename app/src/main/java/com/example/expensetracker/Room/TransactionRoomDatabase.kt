@@ -1,13 +1,17 @@
-package com.example.expensetracker
+package com.example.expensetracker.Room
 
-import android.content.Context
 import androidx.room.Database
-import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.expensetracker.Room.TransactionDao
+import com.example.expensetracker.Room.TransactionEntity
 
 @Database(entities = [TransactionEntity::class], version = 1)
+
 abstract class TransactionsDatabase : RoomDatabase() {
+
     abstract fun transactionDao(): TransactionDao
+
+}
 
   /*  companion object {
         @Volatile
@@ -27,4 +31,4 @@ abstract class TransactionsDatabase : RoomDatabase() {
     }
 
    */
-}
+
