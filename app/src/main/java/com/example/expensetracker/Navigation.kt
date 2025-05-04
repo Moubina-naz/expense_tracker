@@ -37,7 +37,7 @@ fun Navigation(viewModel : Transacviewmodel = viewModel(),
 
     ) {
         composable<HomeScrn> {
-            HomeScreen( navController = navController)
+            HomeScreen( navController = navController, viewModel = viewModel)
         }
         composable<AddTransac> {
             AddTransactions(viewModel = viewModel, navController = navController)

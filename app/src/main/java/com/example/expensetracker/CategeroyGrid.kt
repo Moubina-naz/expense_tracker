@@ -37,7 +37,6 @@ fun CategoryGrid(
     onCategorySelected: (CategoryItem) -> Unit
 ) {
     // Debug print to verify data
-    println("Rendering ${cats.size} categories: ${cats.map { it.name }}")
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(3), // More reliable than Adaptive

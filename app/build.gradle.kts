@@ -69,13 +69,21 @@ dependencies {
     // Compose BOM
     implementation(platform(libs.androidx.compose.bom))
 
-    // Compose UI & Material 3
-    implementation(libs.androidx.material3) // Keep only one material3 version
+    // Material 3 (use libs)
+    implementation(libs.androidx.material3)
+
+// Material Icons Extended
     implementation("androidx.compose.material:material-icons-extended:1.5.4")
+
+// Navigation Compose
     implementation(libs.androidx.navigation.compose)
+
+// Compose UI basics
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
+
+// Date-Time Picker
     implementation("network.chaintech:kmp-date-time-picker:1.0.5")
 
     // Room

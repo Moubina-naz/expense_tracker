@@ -16,12 +16,14 @@ class TransactionRepository(private val dao: TransactionDao) {
     suspend fun deleteTransaction(transaction: TransactionEntity) {
         dao.deleteTransaction(transaction)
     }
-    fun getTransactionById(id: Int): Flow<TransactionEntity> {
+    fun getTransactionById(id: Long): Flow<TransactionEntity> {
         return dao.getTransactionById(id)
     }
     suspend fun updateTransaction(transaction: TransactionEntity) {
         dao.updateTransaction(transaction)
     }
+
+    fun getRecentTransactions(): Flow<List<TransactionEntity>> = dao.getRecentTransactions()
 
 
 

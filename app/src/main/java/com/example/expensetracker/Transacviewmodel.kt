@@ -46,12 +46,14 @@ class Transacviewmodel(
         transacIconstate = newIcon
     }
 
-    lateinit var getAllTransactions: Flow<List<TransactionEntity>>
+    /*lateinit var getAllTransactions: Flow<List<TransactionEntity>>
       init {
           viewModelScope.launch {
               getAllTransactions = repository.getTransaction()
           }
       }
+
+     */
     val transactionList = repository.allTrans
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -100,6 +102,8 @@ class Transacviewmodel(
             repository.deleteTransaction(transaction)
         }
     }
+    val recentTransactions = repository.getRecentTransactions()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     fun loadTransactionForEditing(transaction: TransactionEntity) {
         currentEditingId = transaction.id
         transacTitlestate = transaction.title

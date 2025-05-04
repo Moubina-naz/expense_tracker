@@ -3,7 +3,6 @@ package com.example.expensetracker
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,34 +17,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.expensetracker.Room.TransactionEntity
 
-@Composable
-fun RecentTransactions() {
-    Column {
-        Box(modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)) {
-            Text(text = "Recent Transactions", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Text(
-                text = "See all",
-                fontSize = 16.sp,
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .clickable { })
-        }
 
-
-    }
-
-}
 
 @Composable
-fun TransactionItem(transactions: TransactionEntity, onClick: () -> Unit) {
+fun TransactionItem(transaction: TransactionEntity, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -65,20 +45,20 @@ fun TransactionItem(transactions: TransactionEntity, onClick: () -> Unit) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
-                    painter = painterResource(id = transactions.icon),
+                    painter = painterResource(id = transaction.icon),
                     contentDescription = "",
                     modifier = Modifier.size(50.dp)
                 )
                 Spacer(modifier = Modifier.size(8.dp))
 
                 Column {
-                    Text(text = transactions.title, fontSize = 18.sp)
-                    Text(text = transactions.amount.toString(), fontSize = 20.sp)
+                    Text(text = transaction.title, fontSize = 18.sp)
+                    Text(text = transaction.amount.toString(), fontSize = 20.sp)
                 }
             }
 
             Text(
-                text = transactions.date,
+                text = transaction.date,
                 fontSize = 12.sp,
                 modifier = Modifier.align(Alignment.CenterVertically) // Ensures vertical alignment
             )
@@ -90,6 +70,5 @@ fun TransactionItem(transactions: TransactionEntity, onClick: () -> Unit) {
 @Composable
 @Preview(showBackground = true)
 fun previewRecentTransactions() {
-    RecentTransactions()
 }
 
