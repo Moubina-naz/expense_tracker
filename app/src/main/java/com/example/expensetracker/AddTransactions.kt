@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,7 +21,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 
 
 import androidx.compose.material3.OutlinedTextField
@@ -41,6 +45,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Transaction
@@ -253,7 +262,9 @@ fun transacTextfeild(
 
 }
 @Composable
-fun Addbg( title:  String,onBackClick: () -> Unit){
+fun Addbg( title:  String,onBackClick: () -> Unit,expanded: MutableState<Boolean> = remember { mutableStateOf(false) },
+           onMoreClick: @Composable ColumnScope.()-> Unit = {}){
+
 
     Image(
         painter = painterResource(id = R.drawable.arc_bg),
@@ -281,6 +292,23 @@ fun Addbg( title:  String,onBackClick: () -> Unit){
             Spacer(modifier = Modifier.size(8.dp))
 
         }
-        Image(painter = painterResource(id = R.drawable.more_horiz),contentDescription = null )
+        Box {
+            IconButton(onClick = { expanded.value = true }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.more_horiz),
+                    contentDescription = "More Options",
+                    tint = Color.White
+                )
+            }
+
+            // Anchor menu to the box
+            DropdownMenu(
+                expanded = expanded.value,
+                onDismissRequest = { expanded.value = false },
+                modifier = Modifier.background(Color.White) // Fix invisible menu
+            ) {
+                onMoreClick()
+            }
+        }
     }
 }
