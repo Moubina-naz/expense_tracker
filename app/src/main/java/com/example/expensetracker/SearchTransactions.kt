@@ -11,6 +11,7 @@ import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
@@ -60,12 +61,14 @@ fun  Search(modifier: Modifier=Modifier,viewModel : Transacviewmodel,navControll
         trailingIcon = {
             if(isActive){
                 IconButton(onClick = { viewModel.updateSearchQuery("") }) {
-                    Image(imageVector = Icons.Outlined.Cancel, contentDescription = "")
+                    Icon(imageVector = Icons.Outlined.Cancel, contentDescription = "")
+
                 }
             }
             else{
                 IconButton(onClick = { isActive = false }) {
-                    Image(imageVector = Icons.Outlined.Search, contentDescription = "")
+                    Icon(imageVector = Icons.Outlined.Search, contentDescription = "")
+
                 }
             }
         })

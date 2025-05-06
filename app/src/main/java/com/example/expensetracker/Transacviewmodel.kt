@@ -14,11 +14,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -138,28 +141,30 @@ class Transacviewmodel(
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
-    fun updateSearchQuery(NewQuery: String) {
-        _searchQuery.value = NewQuery
-        _isSearching.value = NewQuery.isNotBlank()
 
+    fun updateSearchQuery(newQuery: String) {
+        _searchQuery.value = newQuery
+        _isSearching.value = newQuery.isNotBlank()
     }
 
-    val filteredTransactions = searchQuery
-        .debounce(300)
-        .distinctUntilChanged()
-        .flatMapLatest { query ->
-           if(query.isBlank()){
-               transactionList
-           }else{
-               _isSearching.value = true
-               val q = "${query.lowercase()}%"
-               repository.searchTransactions(q)
-                   .onCompletion { _isSearching.value=false }
-                   .catch { e->
-                       _isSearching.value=false
-                       emit(emptyList())
-                   }
-           }
-        }
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val filteredTransactions: StateFlow<List<TransactionEntity>> =
+        searchQuery
+            .debounce(300)
+            .distinctUntilChanged()
+            .flatMapLatest { query ->
+                _isSearching.value = query.isNotBlank()
+                if (query.isBlank()) {
+                    repository.allTrans // ✅ RETURNS Flow<List<TransactionEntity>>
+                } else {
+                    val q = "%${query.lowercase()}%"
+                    repository.searchTransactions(q)
+                        .catch {
+                            emit(emptyList())
+                        }
+                }
+            }
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+
+
 }

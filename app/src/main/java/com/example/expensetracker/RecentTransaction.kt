@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DisabledByDefault
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -44,8 +46,11 @@ fun TransactionItem(transaction: TransactionEntity, onClick: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween // Pushes date to right
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+
+                val safeIcon = if (transaction.icon != 0) transaction.icon else R.drawable.image // or any valid fallback
+
                 Image(
-                    painter = painterResource(id = transaction.icon),
+                    painter = painterResource(id = safeIcon),
                     contentDescription = "",
                     modifier = Modifier.size(50.dp)
                 )

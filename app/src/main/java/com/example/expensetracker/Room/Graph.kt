@@ -10,6 +10,11 @@ object Graph {
      }
 
     fun provide(context:Context){
-        database = Room.databaseBuilder(context, TransactionsDatabase::class.java,"transaction_db").build()
+        database = Room.databaseBuilder(
+            context,
+            TransactionsDatabase::class.java,"transaction_db"
+        )
+            .fallbackToDestructiveMigration().
+            build()
     }
 }
