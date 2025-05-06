@@ -20,6 +20,9 @@ object AddTransac
 object AllTransac
 
 @Serializable
+object SearchTransac
+
+@Serializable
 object HomeScrn
 
 @Serializable
@@ -32,12 +35,12 @@ fun Navigation(viewModel : Transacviewmodel = viewModel(),
 
     NavHost(
         navController = navController,
-        startDestination =HomeScrn
+        startDestination = HomeScrn
 
 
     ) {
         composable<HomeScrn> {
-            HomeScreen( navController = navController, viewModel = viewModel)
+            HomeScreen(navController = navController, viewModel = viewModel)
         }
         composable<AddTransac> {
             AddTransactions(viewModel = viewModel, navController = navController)
@@ -51,7 +54,10 @@ fun Navigation(viewModel : Transacviewmodel = viewModel(),
             val args = backStackEntry.toRoute<UpdateTransac>()
             UpdateTransactions(id = args.id, viewModel = viewModel, navController = navController)
         }
-    }
+        composable<SearchTransac> {
+            SearchTransactions(viewModel = viewModel, navController = navController)
+        }
 
+    }
 }
 

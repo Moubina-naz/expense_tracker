@@ -29,5 +29,6 @@ interface  TransactionDao{
    @Query("SELECT * FROM transactions ORDER BY date DESC LIMIT 6")
    abstract fun getRecentTransactions(): Flow<List<TransactionEntity>>
 
-
+   @Query("SELECT * FROM transactions WHERE LOWER(title) LIKE :query OR LOWER(category) LIKE :query")
+   abstract fun searchTransactions(query: String): Flow<List<TransactionEntity>>
 }

@@ -183,7 +183,8 @@ fun Dataform(
             title = viewmodel.transacTitlestate,
             amount = viewmodel.transacAmountstate,
             date = viewmodel.transacDatestate,
-            icon = viewmodel.transacIconstate
+            icon = viewmodel.transacIconstate,
+            category = viewmodel.selectedCategory?.name ?: ""
         )
         val Categories = viewmodel?.categories ?: emptyList()
 

@@ -65,7 +65,7 @@ fun CategoryDropdownGrid(
                 )
             )
 
-            // 🧠 Invisible overlay to handle clicks
+            // Invisible overlay
             Box(
                 modifier = Modifier
                     .matchParentSize()

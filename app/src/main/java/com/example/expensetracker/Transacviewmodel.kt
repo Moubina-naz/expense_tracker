@@ -12,7 +12,14 @@ import com.example.expensetracker.Room.TransactionEntity
 import com.example.expensetracker.Room.TransactionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -46,14 +53,6 @@ class Transacviewmodel(
         transacIconstate = newIcon
     }
 
-    /*lateinit var getAllTransactions: Flow<List<TransactionEntity>>
-      init {
-          viewModelScope.launch {
-              getAllTransactions = repository.getTransaction()
-          }
-      }
-
-     */
     val transactionList = repository.allTrans
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -67,29 +66,13 @@ class Transacviewmodel(
     }
 
 
-
     fun addTransaction(transaction: TransactionEntity) {
-        viewModelScope.launch(Dispatchers.IO)  {
+        viewModelScope.launch(Dispatchers.IO) {
 
             repository.addTransaction(transaction)
-            /*     val transaction = TransactionEntity(
-            id = currentEditingId ?: 0,
-            title = transacTitlestate,
-            amount = transacAmountstate,
-            date = transacDatestate,
-            icon = selectedCategory?.iconRes ?: 0
-        )
-        if (currentEditingId != null) {
-            repository.updateTransaction(transaction)
-        } else {
-            repository.addTransaction(transaction)
         }
-        resetForNewTransaction()
     }
 
-    */
-        }
-    }
     fun updateTransaction(transaction: TransactionEntity) {
         viewModelScope.launch {
             repository.updateTransaction(transaction)
@@ -102,8 +85,10 @@ class Transacviewmodel(
             repository.deleteTransaction(transaction)
         }
     }
+
     val recentTransactions = repository.getRecentTransactions()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
     fun loadTransactionForEditing(transaction: TransactionEntity) {
         currentEditingId = transaction.id
         transacTitlestate = transaction.title
@@ -123,17 +108,17 @@ class Transacviewmodel(
     }
 
 
-    fun onCategorySelected(category: CategoryItem){
-      selectedCategory=category
-      transacIconstate=category.iconRes
-  }
+    fun onCategorySelected(category: CategoryItem) {
+        selectedCategory = category
+        transacIconstate = category.iconRes
+    }
 
-    fun getTransacById(id:Long): TransactionEntity? {
+    fun getTransacById(id: Long): TransactionEntity? {
         return transactionList.value.find { it.id == id }
     }
 
-    fun getCurrentDate(): String{
-        val sdf= SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    fun getCurrentDate(): String {
+        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         return sdf.format(Date())
     }
 
@@ -146,4 +131,35 @@ class Transacviewmodel(
         CategoryItem("Entertainment", R.drawable.entertaintment),
         CategoryItem("Transport", R.drawable.transport)
     )
+
+    //SEARCH
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching = _isSearching.asStateFlow()
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
+    fun updateSearchQuery(NewQuery: String) {
+        _searchQuery.value = NewQuery
+        _isSearching.value = NewQuery.isNotBlank()
+
+    }
+
+    val filteredTransactions = searchQuery
+        .debounce(300)
+        .distinctUntilChanged()
+        .flatMapLatest { query ->
+           if(query.isBlank()){
+               transactionList
+           }else{
+               _isSearching.value = true
+               val q = "${query.lowercase()}%"
+               repository.searchTransactions(q)
+                   .onCompletion { _isSearching.value=false }
+                   .catch { e->
+                       _isSearching.value=false
+                       emit(emptyList())
+                   }
+           }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 }

@@ -53,8 +53,9 @@ fun Alltransaction(
             Addbg("Previous Transactions", onBackClick = { navController.popBackStack() },
                 expanded = expanded,
                 onMoreClick = {
-                    DropdownMenuItem(text = { Text(text = "More",color = Color.Black) },
-                        onClick = { expanded.value=false  })
+                    DropdownMenuItem(text = { Text(text = "Search",color = Color.Black) },
+                        onClick = { expanded.value=false
+                        navController.navigate(SearchTransac)})
                     DropdownMenuItem(text = { Text(text = "Sort",color = Color.Black) }, onClick = {expanded.value=false  })
                     DropdownMenuItem(text = { Text(text = "Filter",color = Color.Black) }, onClick = { expanded.value=false })
                 })

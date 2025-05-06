@@ -25,7 +25,9 @@ class TransactionRepository(private val dao: TransactionDao) {
 
     fun getRecentTransactions(): Flow<List<TransactionEntity>> = dao.getRecentTransactions()
 
-
+    fun searchTransactions(query: String): Flow<List<TransactionEntity>> {
+        return dao.searchTransactions("%$query%")
+    }
 
    }
 
