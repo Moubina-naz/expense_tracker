@@ -1,13 +1,20 @@
 package com.example.expensetracker
 
 import android.icu.text.SimpleDateFormat
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.TextStyle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.expensetracker.Room.CategoryItem
+import com.example.expensetracker.Room.CategoryTotal
 import com.example.expensetracker.Room.Graph
+import com.example.expensetracker.Room.MonthlyData
+import com.example.expensetracker.Room.MonthlySummary
+
 import com.example.expensetracker.Room.TransactionEntity
 import com.example.expensetracker.Room.TransactionRepository
 import kotlinx.coroutines.Dispatchers
@@ -21,12 +28,16 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
+
 
 class Transacviewmodel(
     private val repository : TransactionRepository = Graph.TransactionRepository)
@@ -56,7 +67,7 @@ class Transacviewmodel(
         transacIconstate = newIcon
     }
 
-    val transactionList = repository.allTrans
+    val transactionList = repository.getTransaction()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     fun resetForNewTransaction() {
@@ -136,35 +147,99 @@ class Transacviewmodel(
     )
 
     //SEARCH
-    private val _isSearching = MutableStateFlow(false)
-    val isSearching = _isSearching.asStateFlow()
-
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
-    fun updateSearchQuery(newQuery: String) {
-        _searchQuery.value = newQuery
-        _isSearching.value = newQuery.isNotBlank()
-    }
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching = _isSearching.asStateFlow()
 
     val filteredTransactions: StateFlow<List<TransactionEntity>> =
         searchQuery
             .debounce(300)
             .distinctUntilChanged()
             .flatMapLatest { query ->
-                _isSearching.value = query.isNotBlank()
+                _isSearching.value = true
                 if (query.isBlank()) {
-                    repository.allTrans // ✅ RETURNS Flow<List<TransactionEntity>>
+                    repository.getTransaction()
                 } else {
                     val q = "%${query.lowercase()}%"
                     repository.searchTransactions(q)
-                        .catch {
-                            emit(emptyList())
-                        }
+                        .catch { emit(emptyList()) }
+                        .onCompletion { _isSearching.value = false }
                 }
             }
             .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    fun updateSearchQuery(newQuery: String) {
+        _searchQuery.value = newQuery
+        _isSearching.value = newQuery.isNotBlank()
+    }
+
+    //STATS
 
 
-}
+    private val _selectedMonth = MutableStateFlow<String?>(null)
+    val selectedMonth = _selectedMonth.asStateFlow()
+
+   /* private fun mapMonthlySummaries(summaries: List<MonthlySummary>):List<MonthlyData>{
+        return summaries.map { summary ->
+            val month = summary.monthYear.substring(0,2).toInt()
+            val year = summary.monthYear.substring(2)
+            MonthlyData(
+                monthName = getMonthName(month),
+                year = year,
+                monthYear = summary.monthYear,
+                totalExpenses = summary.totalExpenses,
+                categoryBreakdown = emptyList()
+
+            )
+        }
+    }
+
+    */
+   @RequiresApi(Build.VERSION_CODES.O)
+   private val monthYearFormatter = DateTimeFormatter.ofPattern("MM/yyyy")
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun getMonthName(monthYear: String): String {
+        return try {
+            YearMonth.parse(monthYear, monthYearFormatter)
+                .month
+                .getDisplayName(java.time.format.TextStyle.FULL, Locale.getDefault())
+        } catch (e: Exception) {
+            "Unknown" // Or log the error and return a default
+        }
+    }
+
+
+   val monthlySummaries: Flow<List<MonthlySummary>> = repository.getMonthlySummaries()
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    val uiMonthlyData: Flow<List<MonthlyData>> = repository.getMonthlySummaries().map { summaries ->
+        summaries.map { summary ->
+            val (month, year) = summary.monthYear.split("/")
+            MonthlyData(
+                monthYear = summary.monthYear,
+                totalExpenses = summary.totalExpenses,
+                year = year,
+                monthName = getMonthName(month.toInt().toString()),
+                categoryBreakdown = emptyList() // Will be populated separately
+            )
+        }
+    }
+
+
+
+    val categoryData: Flow<List<CategoryTotal>> = selectedMonth.flatMapLatest { selected ->
+        if (selected == null) {
+            flowOf(emptyList())
+        } else {
+            val (month, year) = selected.split("/")
+            repository.getMonthlyCategoryTotals(month, year)
+        }
+    }
+
+
+    fun selectMonth(monthYear: String){
+        _selectedMonth.value = monthYear  }
+    }

@@ -2,8 +2,12 @@ package com.example.expensetracker
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -13,6 +17,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,56 +28,55 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 
 @Composable
 fun SearchTransactions(modifier: Modifier = Modifier,viewModel : Transacviewmodel,navController: NavController) {
     Box(modifier=modifier.fillMaxSize()){
-        Search(modifier= modifier
+        SearchScreen(modifier= modifier
             .fillMaxWidth()
             .align(Alignment.TopCenter),viewModel,navController )
     }
 
 }
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun  Search(modifier: Modifier=Modifier,viewModel : Transacviewmodel,navController: NavController ) {
+fun SearchScreen(
+    modifier: Modifier = Modifier,
+    viewModel: Transacviewmodel,
+    navController: NavController
+) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
     val searchResults by viewModel.filteredTransactions.collectAsState()
-    val alltransactions by viewModel.transactionList.collectAsState()
-     var isActive by remember { mutableStateOf(false) }
-    
-    SearchBar(query = searchQuery,
-        onQueryChange = {new->
-                        viewModel.updateSearchQuery(new)
-        },
-        onSearch = {
-                   isActive = false
-        },
-        active = isActive ,
-        onActiveChange = {
-            isActive = it
-        },
-        placeholder = {
-            Text(text = "search Transactions...")
-        },
-        trailingIcon = {
-            if(isActive){
-                IconButton(onClick = { viewModel.updateSearchQuery("") }) {
-                    Icon(imageVector = Icons.Outlined.Cancel, contentDescription = "")
 
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // 🔍 TextField to enter query
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { viewModel.updateSearchQuery(it) },
+            placeholder = { Text("Search Transactions...") },
+            leadingIcon = {
+                Icon(Icons.Outlined.Search, contentDescription = "Search")
+            },
+            trailingIcon = {
+                if (searchQuery.isNotBlank()) {
+                    IconButton(onClick = { viewModel.updateSearchQuery("") }) {
+                        Icon(Icons.Outlined.Cancel, contentDescription = "Clear")
+                    }
                 }
-            }
-            else{
-                IconButton(onClick = { isActive = false }) {
-                    Icon(imageVector = Icons.Outlined.Search, contentDescription = "")
+            },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
 
-                }
-            }
-        })
-    {
+        Spacer(modifier = Modifier.height(16.dp))
+
         when {
             isSearching -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -82,13 +86,13 @@ fun  Search(modifier: Modifier=Modifier,viewModel : Transacviewmodel,navControll
 
             searchResults.isEmpty() -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "No Transactions Found")
+                    Text("No transactions found")
                 }
             }
 
             else -> {
                 LazyColumn {
-                    items(searchResults) { transaction->
+                    items(searchResults) { transaction ->
                         TransactionItem(
                             transaction = transaction,
                             onClick = {
@@ -100,22 +104,5 @@ fun  Search(modifier: Modifier=Modifier,viewModel : Transacviewmodel,navControll
                 }
             }
         }
-
     }
-    if (!isActive && searchQuery.isEmpty()) {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(alltransactions) { transaction ->
-                TransactionItem(
-                    transaction = transaction,
-                    onClick = {
-                        viewModel.loadTransactionForEditing(transaction)
-                        navController.navigate(UpdateTransac(transaction.id))  
-                    }
-                )
-            }
-        }
-
-
-    }
-    }
-
+}

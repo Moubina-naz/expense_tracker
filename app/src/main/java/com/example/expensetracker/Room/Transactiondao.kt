@@ -31,4 +31,17 @@ interface  TransactionDao{
 
    @Query("SELECT * FROM transactions WHERE LOWER(title) LIKE :query OR LOWER(category) LIKE :query")
    abstract fun searchTransactions(query: String): Flow<List<TransactionEntity>>
+
+    @Query("SELECT Category , SUM(amount) FROM transactions WHERE strftime('%Y', date) = :month AND strftime('%m', date) = :year GROUP BY category")
+    abstract fun getMonthlyCategoryTotals(month: String, year: String): Flow<List<CategoryTotal>>
+
+
+    @Query("SELECT SUM(amount) FROM transactions")
+    abstract fun getTotalAmount(): Flow<Double>
+
+    @Query("SELECT strftime('%m%Y', date) as monthYear, SUM(amount) as totalAmount FROM transactions GROUP BY monthYear ORDER BY date")
+    abstract fun getMonthlyTotals(): Flow<List<MonthlyData>>
+    @Query("SELECT strftime('%m%Y', date) as monthYear, SUM(amount) as totalAmount FROM transactions GROUP BY monthYear ORDER BY date")
+    fun getMonthlySummaries(): Flow<List<MonthlySummary>>
+
 }

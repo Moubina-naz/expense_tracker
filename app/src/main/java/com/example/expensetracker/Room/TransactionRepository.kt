@@ -11,14 +11,17 @@ class TransactionRepository(private val dao: TransactionDao) {
     suspend fun addTransaction(transaction: TransactionEntity) {
         dao.addTransaction(transaction)
     }
+
     fun getTransaction(): Flow<List<TransactionEntity>> = dao.getAllTransactions()
 
     suspend fun deleteTransaction(transaction: TransactionEntity) {
         dao.deleteTransaction(transaction)
     }
+
     fun getTransactionById(id: Long): Flow<TransactionEntity> {
         return dao.getTransactionById(id)
     }
+
     suspend fun updateTransaction(transaction: TransactionEntity) {
         dao.updateTransaction(transaction)
     }
@@ -29,6 +32,17 @@ class TransactionRepository(private val dao: TransactionDao) {
         return dao.searchTransactions("%$query%")
     }
 
-   }
+    fun getMonthlyCategoryTotals(month: String, year: String): Flow<List<CategoryTotal>> {
+        return dao.getMonthlyCategoryTotals(month, year)
+    }
+
+    fun getMonthlySummaries(): Flow<List<MonthlySummary>> {
+    return dao.getMonthlySummaries()
+    }
+    fun getMonthlyTotals(): Flow<List<MonthlyData>> {
+        return dao.getMonthlyTotals()
+
+    }
+}
 
 

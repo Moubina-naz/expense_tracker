@@ -20,6 +20,21 @@ data class CategoryItem(
     val iconRes: Int
 )
 
+data class CategoryTotal(
+    val category: String,
+    val total: Double )
 
+data class MonthlySummary(
+    val monthYear: String, // Format: "MM/YYYY"
+    val totalExpenses: Double,
+
+)
+data class MonthlyData(
+    val monthYear: String, // Format: "MM/YYYY"
+    val totalExpenses: Double,
+    val year: String,
+    val monthName : String,
+    val categoryBreakdown: List<CategoryTotal>
+)
 
 
