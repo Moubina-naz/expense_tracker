@@ -22,13 +22,17 @@ data class CategoryItem(
 
 data class CategoryTotal(
     val category: String,
-    val total: Double )
+    val total: Float)
 
 data class MonthlySummary(
-    val monthYear: String, // Format: "MM/YYYY"
-    val totalExpenses: Double,
+    val monthYear: String, //  "May", "June"
+    val totalExpenses: Double // "05/2024" — to match the format in your selectedMonth
 
 )
+ data class MonthItem(
+     val label: String,
+     val value: String
+ )
 data class MonthlyData(
     val monthYear: String, // Format: "MM/YYYY"
     val totalExpenses: Double,

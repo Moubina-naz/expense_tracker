@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.expensetracker.Room.CategoryItem
 import com.example.expensetracker.Room.CategoryTotal
 import com.example.expensetracker.Room.Graph
+import com.example.expensetracker.Room.MonthItem
 import com.example.expensetracker.Room.MonthlyData
 import com.example.expensetracker.Room.MonthlySummary
 
@@ -35,6 +36,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -178,68 +180,42 @@ class Transacviewmodel(
     //STATS
 
 
-    private val _selectedMonth = MutableStateFlow<String?>(null)
-    val selectedMonth = _selectedMonth.asStateFlow()
+    private fun getCurrentMonthYear(): String {
+        val calendar = Calendar.getInstance()
+        val month = String.format("%02d", calendar.get(Calendar.MONTH) + 1)
+        val year = calendar.get(Calendar.YEAR)
+        return "$month/$year"
 
-   /* private fun mapMonthlySummaries(summaries: List<MonthlySummary>):List<MonthlyData>{
-        return summaries.map { summary ->
-            val month = summary.monthYear.substring(0,2).toInt()
-            val year = summary.monthYear.substring(2)
-            MonthlyData(
-                monthName = getMonthName(month),
-                year = year,
-                monthYear = summary.monthYear,
-                totalExpenses = summary.totalExpenses,
-                categoryBreakdown = emptyList()
-
-            )
-        }
     }
 
-    */
-   @RequiresApi(Build.VERSION_CODES.O)
-   private val monthYearFormatter = DateTimeFormatter.ofPattern("MM/yyyy")
 
+ private val _selectedMonth = MutableStateFlow(getCurrentMonthYear())
+    val selectedMonth: StateFlow<String> = _selectedMonth
+
+    fun selectMonth(month: String,year:String) {
+        val formattedMonth = String.format("%02d", month.toInt()) // Ensure 2-digit month
+        _selectedMonth.value = "$formattedMonth/$year"
+
+    }
+
+    val categoryTotal:Flow<List<CategoryTotal>> = selectedMonth.flatMapLatest { monthYear ->
+        val (month, year) = monthYear.split("/")
+        repository.getCategoryTotals(month,year)
+
+    }
     @RequiresApi(Build.VERSION_CODES.O)
-    fun getMonthName(monthYear: String): String {
-        return try {
-            YearMonth.parse(monthYear, monthYearFormatter)
-                .month
-                .getDisplayName(java.time.format.TextStyle.FULL, Locale.getDefault())
-        } catch (e: Exception) {
-            "Unknown" // Or log the error and return a default
-        }
-    }
+    fun generatePastMonths(count: Int = 6): List<MonthItem> {
+        val current = YearMonth.now()
 
+        return (0 until count).map { offset ->
+            val date = current.minusMonths(offset.toLong())
 
-   val monthlySummaries: Flow<List<MonthlySummary>> = repository.getMonthlySummaries()
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    val uiMonthlyData: Flow<List<MonthlyData>> = repository.getMonthlySummaries().map { summaries ->
-        summaries.map { summary ->
-            val (month, year) = summary.monthYear.split("/")
-            MonthlyData(
-                monthYear = summary.monthYear,
-                totalExpenses = summary.totalExpenses,
-                year = year,
-                monthName = getMonthName(month.toInt().toString()),
-                categoryBreakdown = emptyList() // Will be populated separately
+            MonthItem(
+                label = date.month.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault()), // "May"
+                value = date.format(DateTimeFormatter.ofPattern("MM/yyyy")) // "05/2025"
             )
-        }
+        }.reversed() // Optional: Oldest left, latest right
     }
 
+}
 
-
-    val categoryData: Flow<List<CategoryTotal>> = selectedMonth.flatMapLatest { selected ->
-        if (selected == null) {
-            flowOf(emptyList())
-        } else {
-            val (month, year) = selected.split("/")
-            repository.getMonthlyCategoryTotals(month, year)
-        }
-    }
-
-
-    fun selectMonth(monthYear: String){
-        _selectedMonth.value = monthYear  }
-    }
