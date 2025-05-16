@@ -27,6 +27,8 @@ object HomeScrn
 
 @Serializable
 data class UpdateTransac(val id: Long)
+@Serializable
+object DashboardTransac
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -56,6 +58,9 @@ fun Navigation(viewModel : Transacviewmodel = viewModel(),
         }
         composable<SearchTransac> {
             SearchTransactions(viewModel = viewModel, navController = navController)
+        }
+        composable<DashboardTransac> {
+            DashboardScreen(navController = navController)
         }
 
     }

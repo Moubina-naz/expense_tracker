@@ -9,9 +9,11 @@ data class ChartModel(
     val name: String
 )
 
-val charts = listOf(
-    ChartModel(value = 20f, color =Color.Blue, name = cat.category),
-    ChartModel(value = 30f, color = Color.Gray, name = cat.category),
-    ChartModel(value = 40f, color = Color.Green, name = cat.category),
-    ChartModel(value = 10f, color = Color.Red, name = cat.category),
+/*val charts = listOf(
+    ChartModel(value = 20f, color =Color.Blue, name = ),
+    ChartModel(value = 30f, color = Color.Gray, name = ),
+    ChartModel(value = 40f, color = Color.Green, name = ),
+    ChartModel(value = 10f, color = Color.Red, name =),
 )
+
+ */

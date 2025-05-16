@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 data class TransactionEntity(
     @PrimaryKey(autoGenerate = true)val id :Long = 0L,
     val title : String = "",
-    val amount : String ="",
+    val amount: Double = 0.0,
     val date : String = "",
     val icon : Int = 0,
     val category : String = ""
@@ -36,9 +36,9 @@ data class MonthlySummary(
 data class MonthlyData(
     val monthYear: String, // Format: "MM/YYYY"
     val totalExpenses: Double,
-    val year: String,
-    val monthName : String,
-    val categoryBreakdown: List<CategoryTotal>
+    //val year: String,
+    //val monthName : String,
+    //val categoryBreakdown: List<CategoryTotal>
 )
 
 

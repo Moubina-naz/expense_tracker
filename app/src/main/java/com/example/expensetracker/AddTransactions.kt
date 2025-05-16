@@ -161,8 +161,10 @@ fun Dataform(
 
         transacTextfeild(
             lable = "Amount",
-            value = viewmodel?.transacAmountstate ?: "",
-            onValueChange = { viewmodel?.onTransacAmountChange(it) },
+            value = viewmodel.transacAmountstate.toString(),
+            onValueChange = {
+                viewmodel.onTransacAmountChange(it)
+            },
             keyboardType = KeyboardType.Number
         )
 
@@ -181,7 +183,7 @@ fun Dataform(
         val t = TransactionEntity(
             id = viewmodel.currentEditingId ?: 0L,
             title = viewmodel.transacTitlestate,
-            amount = viewmodel.transacAmountstate,
+            amount = viewmodel.transacAmountstate.toDoubleOrNull()?:0.0,
             date = viewmodel.transacDatestate,
             icon = viewmodel.transacIconstate,
             category = viewmodel.selectedCategory?.name ?: ""

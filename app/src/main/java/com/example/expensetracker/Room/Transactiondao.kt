@@ -32,13 +32,20 @@ interface  TransactionDao{
    @Query("SELECT * FROM transactions WHERE LOWER(title) LIKE :query OR LOWER(category) LIKE :query")
    abstract fun searchTransactions(query: String): Flow<List<TransactionEntity>>
 
-    @Query("SELECT Category , SUM(amount) FROM transactions WHERE strftime('%Y', date) = :month AND strftime('%m', date) = :year GROUP BY category")
-    abstract fun getCategoryTotals(month: String, year: String): Flow<List<CategoryTotal>>
+    @Query("""
+        SELECT category, SUM(amount) as total 
+        FROM transactions 
+        WHERE substr(date, 4, 2) = :month  /* DD/MM/YYYY format - extract MM */
+        AND substr(date, 7, 4) = :year     /* DD/MM/YYYY format - extract YYYY */
+        GROUP BY category
+    """)
+    fun getCategoryTotals(month: String, year: String):Flow<List<CategoryTotal>>
 
 
-    @Query("SELECT strftime('%m%Y', date) as monthYear, SUM(amount) as totalAmount FROM transactions GROUP BY monthYear ORDER BY date")
+    @Query("SELECT strftime('%m%Y', date) as monthYear, SUM(amount) as totalExpenses FROM transactions GROUP BY monthYear ORDER BY date")
     abstract fun getMonthlyTotals(): Flow<List<MonthlyData>>
-    @Query("SELECT strftime('%m%Y', date) as monthYear, SUM(amount) as totalAmount FROM transactions GROUP BY monthYear ORDER BY date")
-    fun getMonthlySummaries(): Flow<List<MonthlySummary>>
+
+    //@Query("SELECT strftime('%m%Y', date) as monthYear, SUM(amount) as totalAmount FROM transactions GROUP BY monthYear ORDER BY date")
+    //fun getMonthlySummaries(): Flow<List<MonthlySummary>>
 
 }

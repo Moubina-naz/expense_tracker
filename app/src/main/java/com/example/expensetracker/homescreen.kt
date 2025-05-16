@@ -108,7 +108,7 @@ fun HomeScreen( navController: NavController = rememberNavController(),
 
                     // Right side icons
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        IconButton(onClick = { /* Navigate to Statistics */ }) {
+                        IconButton(onClick = { navController.navigate(DashboardTransac) }) {
                             Icon(Icons.Filled.BarChart, contentDescription = "Statistics")
                         }
                         IconButton(onClick = { /* Navigate to Settings */ }) {

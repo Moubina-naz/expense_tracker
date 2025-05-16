@@ -32,13 +32,11 @@ class TransactionRepository(private val dao: TransactionDao) {
         return dao.searchTransactions("%$query%")
     }
 
-    fun getCategoryTotals(month: String, year: String): Flow<List<CategoryTotal>> {
+fun getCategoryTotals(month: String, year: String): Flow<List<CategoryTotal>> {
         return dao.getCategoryTotals(month, year)
     }
 
-    fun getMonthlySummaries(): Flow<List<MonthlySummary>> {
-    return dao.getMonthlySummaries()
-    }
+    //fun getMonthlySummaries(): Flow<List<MonthlySummary>> { return dao.getMonthlySummaries()}
     fun getMonthlyTotals(): Flow<List<MonthlyData>> {
         return dao.getMonthlyTotals()
 
