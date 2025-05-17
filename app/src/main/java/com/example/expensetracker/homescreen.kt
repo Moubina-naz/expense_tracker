@@ -71,53 +71,7 @@ fun HomeScreen( navController: NavController = rememberNavController(),
     val context = LocalContext.current
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        bottomBar = {
-            BottomAppBar {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Left side icons
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        IconButton(onClick = { /* Navigate to Home */ }) {
-                            Icon(Icons.Filled.Home, contentDescription = "Home")
-                        }
-                        IconButton(onClick = { /* Navigate to Wallet */ }) {
-                            Icon(Icons.Filled.AccountBalanceWallet, contentDescription = "Wallet")
-                        }
-                    }
 
-
-                    Box(
-                        modifier = Modifier
-                            .size(60.dp).clip(RoundedCornerShape(16.dp)) // square size
-                            .background(color = colorResource(id = R.color.base)) // square background
-                            .clickable { navController.navigate(AddTransac) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add",
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-
-                    // Right side icons
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        IconButton(onClick = { navController.navigate(DashboardTransac) }) {
-                            Icon(Icons.Filled.BarChart, contentDescription = "Statistics")
-                        }
-                        IconButton(onClick = { /* Navigate to Settings */ }) {
-                            Icon(Icons.Filled.Settings, contentDescription = "Settings")
-                        }
-                    }
-                }
-            }
-        }
     )
     { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {

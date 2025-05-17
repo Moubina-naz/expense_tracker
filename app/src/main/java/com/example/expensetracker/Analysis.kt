@@ -56,7 +56,7 @@ fun DashboardScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
 
-            Icon(painter = painterResource(id = R.drawable.arrowbackios), contentDescription = "")
+            Icon(painter = painterResource(id = R.drawable.arrowbackios), contentDescription = "",  modifier = Modifier.clickable { navController.popBackStack() })
 
 
             Column() {
