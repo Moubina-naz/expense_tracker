@@ -20,10 +20,16 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,8 +48,7 @@ fun DashboardScreen(
 ) {
 
 
-
-    Column(modifier = Modifier.fillMaxSize()){
+    Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -85,15 +90,36 @@ fun DashboardScreen(
 
             }
         }
-        Box(modifier = Modifier){
-            StatisticsScreen()
+        Spacer(modifier = Modifier.size(20.dp))
+        var selectedIndex by remember { mutableStateOf(0) }
+        val options = listOf("Breakdown","Trend" )
+        SingleChoiceSegmentedButtonRow {
+            options.forEachIndexed { index, label ->
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                    onClick = { selectedIndex = index },
+                    selected = index == selectedIndex,
+                    colors = SegmentedButtonDefaults.colors(
+                        activeContainerColor = Color(669999)  ,
+                        inactiveContainerColor = Color.White,
+                        activeContentColor = Color.White,
+                        inactiveContentColor = Color(669999)
+
+                    )
+                ) {
+                    Text(label)
+                }
+            }
+            Spacer(modifier = Modifier.size(16.dp))
+            when(selectedIndex){
+                0->StatisticsScreen()
+                //1->LineChartScreen()
+            }
 
 
         }
-
-
     }
-    }
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)

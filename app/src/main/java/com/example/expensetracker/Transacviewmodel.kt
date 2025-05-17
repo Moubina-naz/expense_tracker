@@ -136,7 +136,7 @@ class Transacviewmodel(
     }
 
     fun getCurrentDate(): String {
-        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
         return sdf.format(Date())
     }
 
@@ -179,7 +179,7 @@ class Transacviewmodel(
         _isSearching.value = newQuery.isNotBlank()
     }
 
-    //STATS
+    //PIECHARTSTATS
 
 
     private fun getCurrentMonthYear(): String {
@@ -247,5 +247,6 @@ class Transacviewmodel(
         }.reversed()
     }
 
+    //LINECHART
 }
 

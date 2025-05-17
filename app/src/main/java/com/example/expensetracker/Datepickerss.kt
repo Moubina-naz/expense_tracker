@@ -69,13 +69,31 @@ fun WheelDate(
                     bottomStart = 18.dp,
                     bottomEnd = 18.dp
                 ),
-                onDoneClick = {
+                onDoneClick = {date->
                     //showDatePicker = false
-                    onSelectedDate(it.toString())
-                    println("Done: $it")
+                    val formattedDate= formatDateSlash(date.toString())
+                    onSelectedDate(formattedDate)
+                    println("Done: $formattedDate")
                 },
                 onDismiss = onDismiss )
         }
+    }
+}
+fun formatDateSlash(dateStr: String): String {
+    return try {
+        // If the date is already in "dd/MM/yyyy", return as-is
+        if (dateStr.contains("/")) {
+            return dateStr
+        }
+        // Otherwise, parse and reformat
+        val parts = dateStr.split("-")
+        if (parts.size == 3) {
+            "${parts[0]}/${parts[1]}/${parts[2]}" // dd/MM/yyyy
+        } else {
+            dateStr // Fallback (shouldn't happen)
+        }
+    } catch (e: Exception) {
+        dateStr // Fallback
     }
 }
 @RequiresApi(Build.VERSION_CODES.O)
@@ -129,7 +147,8 @@ Column (modifier = Modifier.fillMaxWidth()){
                 showDatePicker = true,
                 onDismiss = { showPicker = false },
                 onSelectedDate = {
-                    onDateSelected(it)
+                    val formatdate = formatDateSlash(it)
+                    onDateSelected(formatdate)
                     showPicker = false
                 }
             )
