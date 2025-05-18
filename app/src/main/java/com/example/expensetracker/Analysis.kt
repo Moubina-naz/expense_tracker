@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenu
@@ -34,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,7 +45,7 @@ import androidx.navigation.NavController
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DashboardScreen(
-//viewModel: Transacviewmodel
+viewModel: Transacviewmodel,
     navController: NavController
 ) {
 
@@ -91,39 +93,70 @@ fun DashboardScreen(
             }
         }
         Spacer(modifier = Modifier.size(20.dp))
+
         var selectedIndex by remember { mutableStateOf(0) }
         val options = listOf("Breakdown","Trend" )
-        SingleChoiceSegmentedButtonRow {
-            options.forEachIndexed { index, label ->
-                SegmentedButton(
-                    shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                    onClick = { selectedIndex = index },
-                    selected = index == selectedIndex,
-                    colors = SegmentedButtonDefaults.colors(
-                        activeContainerColor = Color(669999)  ,
-                        inactiveContainerColor = Color.White,
-                        activeContentColor = Color.White,
-                        inactiveContentColor = Color(669999)
 
-                    )
-                ) {
-                    Text(label)
-                }
-            }
+       Box( modifier = Modifier
+           .fillMaxWidth()
+           .height(48.dp) // Fixed height
+           .padding(horizontal = 16.dp)) {
+           SingleChoiceSegmentedButtonRow(
+               modifier = Modifier.fillMaxWidth()
+           )
+           {
+               options.forEachIndexed { index, label ->
+                   SegmentedButton(
+                       shape = SegmentedButtonDefaults.itemShape(
+                           index = index,
+                           count = options.size
+                       ),
+                       onClick = { selectedIndex = index },
+                       selected = index == selectedIndex,
+                       colors = SegmentedButtonDefaults.colors(
+                           activeContainerColor = colorResource(id = R.color.base),
+                           inactiveContainerColor = Color.White,
+                           activeContentColor = Color.White,
+                           inactiveContentColor = colorResource(id = R.color.base)
+
+                       )
+                   ) {
+                       Text(label)
+                   }
+               }
+           }
+       }
             Spacer(modifier = Modifier.size(16.dp))
-            when(selectedIndex){
-                0->StatisticsScreen()
-                //1->LineChartScreen()
+
+            StatisticsScreen(viewModel = viewModel, navController)
+     /*       when(selectedIndex){
+                0->StatisticsScreen(viewModel = viewModel, navController)
+                1->LineChartScreen(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp),
+                    xValues = listOf(1, 2, 3, 4, 5), // Example data
+                    yValues = listOf(0, 20, 40, 60, 80),
+                    points = listOf(30f, 45f, 25f, 60f, 10f), // Example data
+                    paddingSpace = 32.dp,
+                    verticalStep = 20
+                )
             }
 
+      */
 
-        }
+
+
+
+
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+/*@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun DashboardScreenPreview() {
     DashboardScreen(navController = NavController(LocalContext.current))
 }
+
+ */

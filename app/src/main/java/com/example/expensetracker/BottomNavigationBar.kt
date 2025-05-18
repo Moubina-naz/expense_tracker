@@ -119,7 +119,7 @@ fun MainScreen() {
                 SearchTransactions(viewModel = viewModel, navController = navController)
             }
             composable<DashboardTransac> {
-                DashboardScreen(navController = navController)
+                DashboardScreen(viewModel = viewModel,navController = navController)
             }
         }
     }

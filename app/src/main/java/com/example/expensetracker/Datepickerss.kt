@@ -101,6 +101,7 @@ fun formatDateSlash(dateStr: String): String {
 fun PickDate(label: String,
              value: String,
              onDateSelected: (String) -> Unit,
+             viewModel : Transacviewmodel,
              modifier: Modifier = Modifier){
     var showPicker by remember { mutableStateOf(false) }
 Column (modifier = Modifier.fillMaxWidth()){
@@ -148,7 +149,13 @@ Column (modifier = Modifier.fillMaxWidth()){
                 onDismiss = { showPicker = false },
                 onSelectedDate = {
                     val formatdate = formatDateSlash(it)
-                    onDateSelected(formatdate)
+                    val parts = formatdate.split("/")
+                    if(parts.size==3) {
+                        val monthyear ="${parts[1]}/${parts[2]}"
+
+                        onDateSelected(formatdate)
+                        viewModel.selectMonth(parts[1],parts[2])
+                    }
                     showPicker = false
                 }
             )

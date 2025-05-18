@@ -173,8 +173,9 @@ fun Dataform(
         PickDate(label = "Date",
             value = viewmodel?.transacDatestate ?: "",
             onDateSelected = { date ->
-                viewmodel?.onTransacDateChange(date)
+                viewmodel.onTransacDateChange(date)
             },
+            viewModel=viewmodel,
             modifier = Modifier.fillMaxWidth())
 
 

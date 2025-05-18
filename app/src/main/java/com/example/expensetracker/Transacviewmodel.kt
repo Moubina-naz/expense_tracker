@@ -64,7 +64,13 @@ class Transacviewmodel(
     }
 
     fun onTransacDateChange(newDate: String) {
-        transacDatestate = newDate
+ val formattedDate = if(newDate.matches(Regex("\\d{2}/\\d{2}/\\d{4}"))){
+     newDate
+ }else{
+     formatDateSlash(newDate)
+ }
+        transacDatestate = formattedDate
+
     }
 
     fun onTransacIconChange(newIcon: Int) {
@@ -136,7 +142,7 @@ class Transacviewmodel(
     }
 
     fun getCurrentDate(): String {
-        val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         return sdf.format(Date())
     }
 

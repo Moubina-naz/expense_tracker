@@ -60,7 +60,7 @@ fun Navigation(viewModel : Transacviewmodel = viewModel(),
             SearchTransactions(viewModel = viewModel, navController = navController)
         }
         composable<DashboardTransac> {
-            DashboardScreen(navController = navController)
+            DashboardScreen(viewModel = viewModel,navController = navController)
         }
 
     }

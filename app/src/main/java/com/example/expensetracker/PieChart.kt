@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.expensetracker.ChartModel
 import com.example.expensetracker.Room.MonthItem
 import com.example.expensetracker.Transacviewmodel
@@ -65,7 +66,7 @@ fun CategoryLegendGrid(
         columns = GridCells.Fixed(3), // 3 columns like your reference
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 200.dp, max = 400.dp),
+            .heightIn(max = 200.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -173,26 +174,33 @@ fun ChartCirclePie(
 
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    @Composable
-    fun StatisticsScreen( viewModel: Transacviewmodel = viewModel()) {
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun StatisticsScreen(
+    viewModel: Transacviewmodel = viewModel(),
+    navController: NavController
+) {
+    val selectedMonth by viewModel.selectedMonth.collectAsState()
+    val categoryTotals by viewModel.categoryTotals.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val months = remember { viewModel.generatePastMonths() }
 
-        val selectedMonth by viewModel.selectedMonth.collectAsState()
-        val categoryTotals by viewModel.categoryTotals.collectAsState()
-        val isLoading by viewModel.isLoading.collectAsState()
-        val months = remember { viewModel.generatePastMonths() }
-
-        Column(
+    // 1. Added fixed constraints to root Column
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 8.dp)
+    ) {
+        // 2. Wrapped LazyRow in fixed height Box
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 8.dp), // Add horizontal padding here
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+                .fillMaxWidth()
+                .height(60.dp) // Fixed height for month selector
         ) {
-            // Month Selector - Removed unnecessary Box
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
-                contentPadding = PaddingValues(vertical = 4.dp) // Only vertical padding
+                contentPadding = PaddingValues(vertical = 4.dp)
             ) {
                 items(months) { month ->
                     val isSelected = month.value == selectedMonth
@@ -207,22 +215,25 @@ fun ChartCirclePie(
                     )
                 }
             }
+        }
 
-            // Content - Removed Spacer and unnecessary Box
+        // 3. Main content area with weight modifier
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f) // Takes remaining space
+                .padding(vertical = 8.dp)
+        ) {
             when {
                 isLoading -> {
                     CircularProgressIndicator(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(vertical = 16.dp)
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 }
                 categoryTotals.isEmpty() -> {
                     Text(
                         text = "No expenses for ${months.find { it.value == selectedMonth }?.label ?: "this month"}",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp),
+                        modifier = Modifier.align(Alignment.Center),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -234,21 +245,35 @@ fun ChartCirclePie(
                             color = getCategoryColor(it.category)
                         )
                     }
-                    ChartCirclePie(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(top = 4.dp), // Reduced top padding
-                        charts = pieData,
-                        size=180.dp
-                        //strokeWidth =12.dp
-                    )
+
+                    // 4. Fixed size for chart container
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        ChartCirclePie(
+                            modifier = Modifier
+                                .size(200.dp) // Fixed size
+                                .padding(8.dp),
+                            charts = pieData,
+                            size = 180.dp
+                        )
+
+                        // 5. Fixed height for legend grid
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp) // Fixed height
+                        ) {
+                            CategoryLegendGrid(charts = pieData)
+                        }
+                    }
                 }
             }
         }
-
-
     }
-
+}
 fun getCategoryColor(category: String): Color {
 return when(category.trim().lowercase()){
         "food" -> Color(0xFFF44336)
