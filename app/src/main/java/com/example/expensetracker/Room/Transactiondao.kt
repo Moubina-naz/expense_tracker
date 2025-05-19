@@ -40,8 +40,8 @@ interface  TransactionDao {
     SELECT category, SUM(amount) as total 
     FROM transactions 
     WHERE 
-        substr(date, 4, 2) = :month AND  /* Extracts MM from dd/MM/yyyy */
-        substr(date, 7, 4) = :year       /* Extracts YYYY from dd/MM/yyyy */
+        (substr(date, 4, 2) = :month AND substr(date, 7, 4) = :year) OR  -- dd/MM/yyyy format
+        (substr(date, 6, 2) = :month AND substr(date, 1, 4) = :year)       -- yyyy/MM/dd format
     GROUP BY category
 """)
     fun getCategoryTotals(month: String, year: String): Flow<List<CategoryTotal>>

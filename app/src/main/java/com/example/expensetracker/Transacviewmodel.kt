@@ -209,7 +209,8 @@ class Transacviewmodel(
     }
 
     fun selectMonth(month: String, year: String) {
-        val formattedMonth = String.format("%02d", month.toInt())
+        // Ensure month is 2 digits
+        val formattedMonth = if (month.length == 1) "0$month" else month
         _selectedMonth.value = "$formattedMonth/$year"
         loadCategoryData()
     }
@@ -226,15 +227,12 @@ class Transacviewmodel(
             _isLoading.value = true
             try {
                 val (month, year) = _selectedMonth.value.split("/")
-
-                // KEY FIX: Use .first() to get only one emission
                 val totals = withTimeout(5000) {
                     repository.getCategoryTotals(month, year).first()
                 }
                 _categoryTotals.value = totals
-
             } catch (e: Exception) {
-                println("Error: ${e.message}")
+                println("Error loading category data: ${e.message}")
                 _categoryTotals.value = emptyList()
             } finally {
                 _isLoading.value = false

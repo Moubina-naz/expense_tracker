@@ -13,6 +13,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +31,7 @@ import network.chaintech.kmp_date_time_picker.utils.DateTimePickerView
 import network.chaintech.kmp_date_time_picker.utils.WheelPickerDefaults
 import java.time.LocalDate
 import androidx.compose.ui.window.Dialog
+import kotlinx.coroutines.delay
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -41,8 +43,13 @@ fun WheelDate(
 ){
 
     //var selectedDate by remember { mutableStateOf("") }
-
-
+    var isButtonClicked by remember { mutableStateOf(false) }
+    LaunchedEffect(isButtonClicked) {
+        if (isButtonClicked) {
+            delay(100)
+            isButtonClicked = false
+        }
+    }
     if (showDatePicker){
         Dialog(onDismissRequest = onDismiss) {
             WheelDatePickerView(height = 180.dp,
@@ -71,31 +78,44 @@ fun WheelDate(
                 ),
                 onDoneClick = {date->
                     //showDatePicker = false
-                    val formattedDate= formatDateSlash(date.toString())
+                    isButtonClicked = true
+                    val formattedDate = formatDateSlash(date.toString())
                     onSelectedDate(formattedDate)
-                    println("Done: $formattedDate")
                 },
                 onDismiss = onDismiss )
+
         }
     }
 }
+
 fun formatDateSlash(dateStr: String): String {
+    val viewModel = Transacviewmodel()
     return try {
-        // If the date is already in "dd/MM/yyyy", return as-is
-        if (dateStr.contains("/")) {
+        // If already in correct format, return as-is
+        if (dateStr.matches(Regex("""\d{2}/\d{2}/\d{4}"""))) {
             return dateStr
         }
-        // Otherwise, parse and reformat
-        val parts = dateStr.split("-")
-        if (parts.size == 3) {
-            "${parts[0]}/${parts[1]}/${parts[2]}" // dd/MM/yyyy
-        } else {
-            dateStr // Fallback (shouldn't happen)
+
+        // Split by either - or /
+        val parts = dateStr.split("-", "/")
+
+        // Reformat based on input pattern
+        when (parts.size) {
+            3 -> {
+                when {
+                    // yyyy-MM-dd -> dd/MM/yyyy
+                    dateStr.contains("-") -> "${parts[2]}/${parts[1]}/${parts[0]}"
+                    // yyyy/MM/dd -> dd/MM/yyyy
+                    else -> "${parts[2]}/${parts[1]}/${parts[0]}"
+                }
+            }
+            else -> viewModel.getCurrentDate() // Fallback to current date
         }
     } catch (e: Exception) {
-        dateStr // Fallback
+        viewModel.getCurrentDate() // Fallback to current date on error
     }
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PickDate(label: String,
@@ -148,13 +168,13 @@ Column (modifier = Modifier.fillMaxWidth()){
                 showDatePicker = true,
                 onDismiss = { showPicker = false },
                 onSelectedDate = {
-                    val formatdate = formatDateSlash(it)
-                    val parts = formatdate.split("/")
-                    if(parts.size==3) {
-                        val monthyear ="${parts[1]}/${parts[2]}"
+                    val formattedDate = formatDateSlash(it)
+                    onDateSelected(formattedDate)
 
-                        onDateSelected(formatdate)
-                        viewModel.selectMonth(parts[1],parts[2])
+                    // Extract month and year reliably
+                    val parts = formattedDate.split("/")
+                    if (parts.size == 3) {
+                        viewModel.selectMonth(parts[1], parts[2])
                     }
                     showPicker = false
                 }

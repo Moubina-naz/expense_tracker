@@ -51,7 +51,7 @@ fun LineChartScreen(modifier : Modifier,
 
     Box(
         modifier = modifier
-            .background(graphAppearance.backgroundColor)
+            //.background(graphAppearance.backgroundColor)
             .padding(horizontal = 8.dp, vertical = 12.dp),
         contentAlignment = Center
     ) {
@@ -152,9 +152,9 @@ fun LineChartScreen(modifier : Modifier,
 }
 
 data class GraphAppearance(
-    val backgroundColor: Color = Color(0xFF101010),
+    //val backgroundColor: Color = Color(0xFF101010),
     val graphColor: Color = Color.Cyan,
-    val graphAxisColor: Color = Color.White,
+    val graphAxisColor: Color = Color.Gray,
     val circleColor: Color = Color.Red,
     val isCircleVisible: Boolean = true,
     val isColorAreaUnderChart: Boolean = true,
