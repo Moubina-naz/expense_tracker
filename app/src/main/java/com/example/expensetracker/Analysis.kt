@@ -41,6 +41,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import kotlinx.coroutines.flow.filter
+import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -58,7 +60,10 @@ viewModel: Transacviewmodel,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
 
-            Icon(painter = painterResource(id = R.drawable.arrowbackios), contentDescription = "",  modifier = Modifier.clickable { navController.popBackStack() })
+            Icon(
+                painter = painterResource(id = R.drawable.arrowbackios),
+                contentDescription = "",
+                modifier = Modifier.clickable { navController.popBackStack() })
 
 
             Column() {
@@ -95,62 +100,72 @@ viewModel: Transacviewmodel,
         Spacer(modifier = Modifier.size(20.dp))
 
         var selectedIndex by remember { mutableStateOf(0) }
-        val options = listOf("Breakdown","Trend" )
+        val options = listOf("Breakdown", "Trend")
 
-       Box( modifier = Modifier
-           .fillMaxWidth()
-           .height(48.dp) // Fixed height
-           .padding(horizontal = 16.dp)) {
-           SingleChoiceSegmentedButtonRow(
-               modifier = Modifier.fillMaxWidth()
-           )
-           {
-               options.forEachIndexed { index, label ->
-                   SegmentedButton(
-                       shape = SegmentedButtonDefaults.itemShape(
-                           index = index,
-                           count = options.size
-                       ),
-                       onClick = { selectedIndex = index },
-                       selected = index == selectedIndex,
-                       colors = SegmentedButtonDefaults.colors(
-                           activeContainerColor = colorResource(id = R.color.base),
-                           inactiveContainerColor = Color.White,
-                           activeContentColor = Color.White,
-                           inactiveContentColor = colorResource(id = R.color.base)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp) // Fixed height
+                .padding(horizontal = 16.dp)
+        ) {
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.fillMaxWidth()
+            )
+            {
+                options.forEachIndexed { index, label ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = options.size
+                        ),
+                        onClick = { selectedIndex = index },
+                        selected = index == selectedIndex,
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContainerColor = colorResource(id = R.color.base),
+                            inactiveContainerColor = Color.White,
+                            activeContentColor = Color.White,
+                            inactiveContentColor = colorResource(id = R.color.base)
 
-                       )
-                   ) {
-                       Text(label)
-                   }
-               }
-           }
-       }
-            Spacer(modifier = Modifier.size(16.dp))
-
-            StatisticsScreen(viewModel = viewModel, navController)
-     /*       when(selectedIndex){
-                0->StatisticsScreen(viewModel = viewModel, navController)
-                1->LineChartScreen(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp),
-                    xValues = listOf(1, 2, 3, 4, 5), // Example data
-                    yValues = listOf(0, 20, 40, 60, 80),
-                    points = listOf(30f, 45f, 25f, 60f, 10f), // Example data
-                    paddingSpace = 32.dp,
-                    verticalStep = 20
-                )
+                        )
+                    ) {
+                        Text(label)
+                    }
+                }
             }
+        }
+        Spacer(modifier = Modifier.size(16.dp))
+        val transactions by viewModel.transactionList.collectAsState(initial = emptyList())
 
-      */
+        when (selectedIndex) {
+            0 -> StatisticsScreen(viewModel = viewModel, navController)
+            1 -> LineChartScreen(viewModel)
 
-
-
+            /*              LineChartScreen(
+                  modifier = Modifier
+                      .fillMaxWidth()
+                      .height(300.dp),
+                  timescale = TimeScale.WEEKLY,
+                  points = transactions
+                      .groupBy { LocalDate.parse(it.date) } // Group by parsed LocalDate directly
+                      .map { (date, transactionGroup) ->
+                          DataPoint(
+                              transactionGroup.sumOf { it.amount.toDouble() }.toFloat(),
+                              date
+                          )
+                      }
+                      .sortedBy { it.date },
+                  //onPointClicked = { point -> }
+              )
+              }
+ */
+        }
 
 
     }
 }
+
+
+
 
 /*@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)

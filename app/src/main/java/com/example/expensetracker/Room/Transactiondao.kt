@@ -7,8 +7,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RewriteQueriesToDropUnusedColumns
 import androidx.room.Update
-import com.example.expensetracker.DailyTotal
-import com.example.expensetracker.MonthlyTotal
 import com.example.expensetracker.WeeklyTotal
 import kotlinx.coroutines.flow.Flow
 
@@ -36,59 +34,75 @@ interface  TransactionDao {
     @Query("SELECT * FROM transactions WHERE LOWER(title) LIKE :query OR LOWER(category) LIKE :query")
     abstract fun searchTransactions(query: String): Flow<List<TransactionEntity>>
 
-    @Query("""
+    @Query(
+        """
     SELECT category, SUM(amount) as total 
     FROM transactions 
     WHERE 
         (substr(date, 4, 2) = :month AND substr(date, 7, 4) = :year) OR  -- dd/MM/yyyy format
         (substr(date, 6, 2) = :month AND substr(date, 1, 4) = :year)       -- yyyy/MM/dd format
     GROUP BY category
-""")
+"""
+    )
     fun getCategoryTotals(month: String, year: String): Flow<List<CategoryTotal>>
-    @Query("SELECT strftime('%m%Y', date) as monthYear, SUM(amount) as totalExpenses FROM transactions GROUP BY monthYear ORDER BY date")
-    abstract fun getMonthlyData(): Flow<List<MonthlyData>>
+
+
+    @Query(
+        """
+    SELECT 
+        MIN(date) as weekStart,
+        MAX(date) as weekEnd,
+        SUM(amount) as total
+    FROM transactions
+    WHERE date >= :startDate  -- Now actually using the parameter
+    GROUP BY substr(date, 7, 4) || substr(date, 4, 2) || (substr(date, 1, 2)/7)
+    ORDER BY weekStart DESC
+    LIMIT 5
+"""
+    )
+    fun getWeeklyTotals(startDate: String): Flow<List<WeeklyData>>
 
     @RewriteQueriesToDropUnusedColumns
+    @Query(
+        """
+     SELECT 
+        substr(date, 4, 2) || '/' || substr(date, 7, 4) as monthYear,
+        SUM(amount) as totalExpenses
+    FROM transactions
+    WHERE date IS NOT NULL 
+      AND date != ''
+      AND date LIKE '__/__/____'  -- Ensures dd/MM/yyyy format
+    GROUP BY monthYear
+    ORDER BY monthYear DESC
+    LIMIT 12
+"""
+    )
+    fun getMonthlyTotals(): Flow<List<MonthlyData>>
 
-        @Query(
-            """
-        SELECT date, SUM(amount) as total 
+
+    @Query(
+        """
+    SELECT 
+        date,
+        SUM(amount) as total
+    FROM transactions
+    WHERE date BETWEEN :start AND :end
+    GROUP BY date
+    ORDER BY date
+"""
+    )
+    fun getDailyTotals(start: String, end: String): Flow<List<DailyData>>
+
+    @Query(
+        """
+        SELECT COALESCE(SUM(amount), 0) 
         FROM transactions 
         WHERE date BETWEEN :startDate AND :endDate
-        GROUP BY date 
-        ORDER BY date ASC
     """
-        )
-        fun getDailyTotals(startDate: String, endDate: String): Flow<List<DailyTotal>>
-    @RewriteQueriesToDropUnusedColumns
+    )
+    suspend  fun getSumBetweenDates(startDate: String, endDate: String): Double
+}
 
-        @Query(
-            """
-        SELECT 
-            strftime('%Y-%W', date) as weekId,
-            MIN(date) as startDate,
-            SUM(amount) as total
-        FROM transactions
-        WHERE date >= :startDate
-        GROUP BY weekId
-        ORDER BY startDate ASC
-    """
-        )
-        fun getWeeklyTotals(startDate: String): Flow<List<WeeklyTotal>>
-    @RewriteQueriesToDropUnusedColumns
 
-        @Query(
-            """
-        SELECT 
-            strftime('%Y-%m', date) as monthId,
-            MIN(date) as startDate,
-            SUM(amount) as total
-        FROM transactions
-        WHERE date >= :startDate
-        GROUP BY monthId
-        ORDER BY startDate ASC
-    """
-        )
-        fun getMonthlyTotals(startDate: String): Flow<List<MonthlyTotal>>
-    }
+
 

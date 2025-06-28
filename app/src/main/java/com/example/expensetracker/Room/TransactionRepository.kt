@@ -3,14 +3,16 @@ package com.example.expensetracker.Room
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.text.TextStyle
-import com.example.expensetracker.DataPoint
-import com.example.expensetracker.TrendRange
+import com.example.expensetracker.getLast5WeeksWithSums
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.datetime.DayOfWeek
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.YearMonth
 import java.util.Locale
-import network.chaintech.kmp_date_time_picker.utils.now
+import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 
 
@@ -42,93 +44,99 @@ class TransactionRepository(private val dao: TransactionDao) {
         return dao.searchTransactions("%$query%")
     }
 
-fun getCategoryTotals(month: String, year: String): Flow<List<CategoryTotal>> {
+    fun getCategoryTotals(month: String, year: String): Flow<List<CategoryTotal>> {
         return dao.getCategoryTotals(month, year)
     }
 
-    //fun getMonthlySummaries(): Flow<List<MonthlySummary>> { return dao.getMonthlySummaries()}
-    fun getMonthlyData(): Flow<List<MonthlyData>> {
-        return dao.getMonthlyData()
 
-    }
+
     @RequiresApi(Build.VERSION_CODES.O)
-    fun getTrendData(range: TrendRange): Flow<List<DataPoint>> {
-        val (startDate, endDate) = calculateDateRange(range)
+    private val dateFormatter = DateTimeFormatter.ISO_DATE
 
-        return when (range) {
-            TrendRange.WEEKLY -> dao.getDailyTotals(startDate.toString(), endDate.toString())
-                .map { dailyTotals ->
-                    val allDates = generateDateRange(startDate, endDate)
-                    allDates.map { date ->
-                        val total = dailyTotals.find { it.date == date }?.total ?: 0f
-                        DataPoint(
-                            label = "", // handled in UI (e.g., dayOfWeek),
-                            value = total,
-                            date = date
-                        )
-                    }
-                }
+    // DAILY (SQL-powered)
 
-            TrendRange.MONTHLY -> dao.getWeeklyTotals(startDate.toString())
-                .map { weeklyTotals ->
-                    val allWeeks = generateWeeklyStartDates(startDate, endDate)
-                    allWeeks.mapIndexed { index, weekStart ->
-                        val total = weeklyTotals.find { it.startDate == weekStart }?.total ?: 0f
-                        DataPoint(
-                            label = "", // handled in UI: "Week ${index + 1}"
-                            value = total,
-                            date = weekStart
-                        )
-                    }
-                }
 
-            TrendRange.ANNUAL -> dao.getMonthlyTotals(startDate.toString())
-                .map { monthlyTotals ->
-                    val allMonths = generateMonthlyStartDates(startDate, endDate)
-                    allMonths.map { monthStart ->
-                        val total = monthlyTotals.find { it.startDate == monthStart }?.total ?: 0f
-                        DataPoint(
-                            label = "", // handled in UI: Jan, Feb...
-                            value = total,
-                            date = monthStart
-                        )
-                    }
-                }
+//linechart montjly
+/*@RequiresApi(Build.VERSION_CODES.O)
+suspend fun getLast30Days(): List<DailyData> {
+    val endDate = LocalDate.now()
+    val startDate = endDate.minusDays(9) // 10 days total (including today)
+
+    val dbDateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    val displayFormatter = DateTimeFormatter.ofPattern("d''MMM")
+        .withLocale(Locale.ENGLISH) // Force English month names
+
+    return dao.getDailyTotals(
+        startDate.format(dbDateFormatter),
+        endDate.format(dbDateFormatter)
+    ).first().map { dbData ->
+        val date = try {
+            LocalDate.parse(dbData.date, dbDateFormatter)
+        } catch (e: Exception) {
+            LocalDate.now() // Fallback to today if parsing fails
+        }
+
+        DailyData(
+            date = dbData.date,
+            total = dbData.total,
+            dayName = date.format(displayFormatter) // Ensures consistent formatting
+        )
+    }.sortedBy { it.date }
+}*/
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun getLast12Months(): List<MonthlyData> {
+        val current = YearMonth.now()
+        val dbData = dao.getMonthlyTotals().first()
+        val formatter = DateTimeFormatter.ofPattern("MMM''yy") // "Jun'25" format
+
+        return if (dbData.isEmpty()) {
+            (0 until 12).map { i ->
+                val month = current.minusMonths(i.toLong())
+                MonthlyData(
+                    monthYear = "${month.monthValue}/${month.year}",
+                    totalExpenses = 0.0,
+                    monthName = month.format(formatter) // Guaranteed non-null
+                )
+            }.reversed()
+        } else {
+            dbData.map { item ->
+                val (month, year) = item.monthYear.split('/')
+                val ym = YearMonth.of(year.toInt(), month.toInt())
+                MonthlyData(
+                    monthYear = item.monthYear,
+                    totalExpenses = item.totalExpenses,
+                    monthName = ym.format(formatter) // Guaranteed non-null
+                )
+            }.sortedBy { it.monthYear }
+        }
+    }
+    // WEEKLY (Kotlin-powered for flexibility)
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun getLast5Weeks(): List<WeeklyData> {
+        val currentDate = LocalDate.now()
+            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+
+        return getLast5WeeksWithSums(currentDate) { start, end ->
+            dao.getSumBetweenDates(start, end)
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun calculateDateRange(range: TrendRange): Pair<LocalDate, LocalDate> {
-        val endDate = LocalDate.now()
-        val startDate = when (range) {
-            TrendRange.WEEKLY -> endDate.with(DayOfWeek.MONDAY)
-            TrendRange.MONTHLY -> endDate.minusWeeks(4).with(DayOfWeek.MONDAY)
-            TrendRange.ANNUAL -> endDate.minusMonths(12).withDayOfMonth(1)
-        }
-        return Pair(startDate, endDate)
+    private fun parseDate(dateString: String): LocalDate {
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        return LocalDate.parse(dateString, formatter)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun generateDateRange(start: LocalDate, end: LocalDate): List<LocalDate> {
-        return generateSequence(start) { it.plusDays(1) }
-            .takeWhile { it <= end }
-            .toList()
-    }
+    // MONTHLY (SQL-powered)
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun generateWeeklyStartDates(start: LocalDate, end: LocalDate): List<LocalDate> {
-        return generateSequence(start) { it.plusWeeks(1) }
-            .takeWhile { it <= end }
-            .toList()
-    }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun generateMonthlyStartDates(start: LocalDate, end: LocalDate): List<LocalDate> {
-        return generateSequence(start) { it.plusMonths(1) }
-            .takeWhile { it <= end }
-            .toList()
-    }
+
+
 }
+
+
+
 
 
 

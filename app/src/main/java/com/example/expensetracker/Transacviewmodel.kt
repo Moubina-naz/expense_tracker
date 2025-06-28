@@ -2,6 +2,7 @@ package com.example.expensetracker
 
 import android.icu.text.SimpleDateFormat
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -11,15 +12,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.expensetracker.Room.CategoryItem
 import com.example.expensetracker.Room.CategoryTotal
+import com.example.expensetracker.Room.DailyData
 import com.example.expensetracker.Room.Graph
 import com.example.expensetracker.Room.MonthItem
 import com.example.expensetracker.Room.MonthlyData
-import com.example.expensetracker.Room.MonthlySummary
 
 import com.example.expensetracker.Room.TransactionEntity
 import com.example.expensetracker.Room.TransactionRepository
+import com.example.expensetracker.Room.WeeklyData
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -29,13 +31,12 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
@@ -43,7 +44,7 @@ import java.util.Date
 import java.util.Locale
 
 
-class Transacviewmodel(
+ open class Transacviewmodel(
     private val repository : TransactionRepository = Graph.TransactionRepository)
     : ViewModel() {
 
@@ -64,11 +65,11 @@ class Transacviewmodel(
     }
 
     fun onTransacDateChange(newDate: String) {
- val formattedDate = if(newDate.matches(Regex("\\d{2}/\\d{2}/\\d{4}"))){
-     newDate
- }else{
-     formatDateSlash(newDate)
- }
+        val formattedDate = if (newDate.matches(Regex("\\d{2}/\\d{2}/\\d{4}"))) {
+            newDate
+        } else {
+            formatDateSlash(newDate)
+        }
         transacDatestate = formattedDate
 
     }
@@ -125,7 +126,7 @@ class Transacviewmodel(
     fun clearFields() {
         currentEditingId = null
         transacTitlestate = ""
-        transacAmountstate =""
+        transacAmountstate = ""
         transacDatestate = getCurrentDate()
         transacIconstate = 0
         selectedCategory = null
@@ -187,7 +188,6 @@ class Transacviewmodel(
 
     //PIECHARTSTATS
 
-
     private fun getCurrentMonthYear(): String {
         val calendar = Calendar.getInstance()
         val month = String.format("%02d", calendar.get(Calendar.MONTH) + 1)
@@ -214,14 +214,18 @@ class Transacviewmodel(
         _selectedMonth.value = "$formattedMonth/$year"
         loadCategoryData()
     }
+
     private fun loadData() {
         viewModelScope.launch {
-            repository.getCategoryTotals(selectedMonth.value.split("/")[0],
-                selectedMonth.value.split("/")[1])
+            repository.getCategoryTotals(
+                selectedMonth.value.split("/")[0],
+                selectedMonth.value.split("/")[1]
+            )
                 .first() // 👈 Only take the first emission
                 .let { _categoryTotals.value = it }
         }
     }
+
     private fun loadCategoryData() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -246,11 +250,97 @@ class Transacviewmodel(
         return (0 until count).map { offset ->
             val date = current.minusMonths(offset.toLong())
             MonthItem(
-                label = "${date.month.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault())} ${date.year}",
-                value = date.format(DateTimeFormatter.ofPattern("MM/yyyy")))
+                label = "${
+                    date.month.getDisplayName(
+                        java.time.format.TextStyle.SHORT,
+                        Locale.getDefault()
+                    )
+                } ${date.year}",
+                value = date.format(DateTimeFormatter.ofPattern("MM/yyyy"))
+            )
         }.reversed()
     }
 
     //LINECHART
+
+
+    private val _dailyData = MutableStateFlow<List<DailyData>>(emptyList())
+    val dailyData: StateFlow<List<DailyData>> = _dailyData
+
+     private val _monthlyData = MutableStateFlow<List<MonthlyData>>(emptyList())
+     val monthlyData: StateFlow<List<MonthlyData>> = _monthlyData
+
+     /*@RequiresApi(Build.VERSION_CODES.O)
+     fun loadDailyData() = viewModelScope.launch {
+         _dailyData.value = repository.getLast30Days()
+     }
+      */
+     fun debugMonthlyData() {
+         viewModelScope.launch {
+             val data = repository.getLast12Months()
+             println("MONTHLY DATA VERIFICATION:")
+             data.forEach {
+                 println("${it.monthName} (${it.monthYear}): ${it.totalExpenses}")
+             }
+         }
+     }
+     @RequiresApi(Build.VERSION_CODES.O)
+     fun loadMonthlyData() = viewModelScope.launch {
+         _monthlyData.value = repository.getLast12Months()
+     }
+     // Added better error handling and data formatting
+     private val _weeklyData = MutableStateFlow<List<WeeklyData>>(emptyList())
+     val weeklyData: StateFlow<List<WeeklyData>> = _weeklyData
+
+     @RequiresApi(Build.VERSION_CODES.O)
+     fun loadWeeklyData() = viewModelScope.launch {
+         _weeklyData.value = repository.getLast5Weeks()
+     }
+     fun initDataIfNeeded() {
+         if (_dailyData.value.isEmpty() &&
+             _weeklyData.value.isEmpty() &&
+             _monthlyData.value.isEmpty() &&
+             Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+             viewModelScope.launch { loadDataSafely() }
+         }
+     }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private suspend fun loadDataSafely() {
+        loadWeeklyData()
+       // loadDailyData()
+        loadMonthlyData()
+    }
+  fun debugPrintTransactions() {
+      viewModelScope.launch {
+          delay(2000)
+          repository.getTransaction().collect { transactions ->
+              // Use a UNIQUE TAG and log level
+              Log.v("EXPENSE_DEBUG", "=== TRANSACTION DUMP ===") // Verbose level
+              transactions.forEach {
+                  Log.v("EXPENSE_DEBUG",
+                      """
+                    ID: ${it.id}
+                    Title: ${it.title}
+                    Amount: ${it.amount}
+                    Date: ${it.date}
+                    ----------------------
+                    """.trimIndent()
+                  )
+              }
+          }
+      }
+  }
+
+
+
+    //debugging
+    fun printData() {
+        viewModelScope.launch {
+            println("Daily Data: ${dailyData.value}")
+            println("Weekly Data: ${weeklyData.value}")
+        }
+    }
 }
+
 

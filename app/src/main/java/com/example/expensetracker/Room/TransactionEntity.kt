@@ -1,6 +1,7 @@
 package com.example.expensetracker.Room
 
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 
@@ -24,21 +25,25 @@ data class CategoryTotal(
     val category: String,
     val total: Float)
 
-data class MonthlySummary(
-    val monthYear: String, //  "May", "June"
-    val totalExpenses: Double // "05/2024" — to match the format in your selectedMonth
-
-)
  data class MonthItem(
      val label: String,
      val value: String
  )
-data class MonthlyData(
-    val monthYear: String, // Format: "MM/YYYY"
-    val totalExpenses: Double,
-    //val year: String,
-    //val monthName : String,
-    //val categoryBreakdown: List<CategoryTotal>
+data class DailyData(
+    var date: String="", // "yyyy-MM-dd"
+    var total: Double=0.0,
+    @Ignore
+    var dayName: String="" // "Monday"
 )
-
-
+data class MonthlyData(
+    var monthYear: String, // Format: "YYYY-MM"
+    var totalExpenses: Double=0.0,
+    @Ignore
+    var monthName: String="" ) // Make nullable with default)
+data class WeeklyData(
+    var weekStart: String = "",  // ← Now mutable with default
+    var weekEnd: String = "",    // ← Now mutable with default
+    var total: Double = 0.0,     // ← Now mutable with default
+    @Ignore
+    val label: String = ""       // ← Can stay immutable (ignored anyway)
+)
