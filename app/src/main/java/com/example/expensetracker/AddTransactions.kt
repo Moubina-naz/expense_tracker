@@ -267,8 +267,8 @@ fun transacTextfeild(
 }
 @Composable
 fun Addbg( title:  String,onBackClick: () -> Unit,expanded: MutableState<Boolean> = remember { mutableStateOf(false) },
+           showMoreButton: Boolean = true,
            onMoreClick: @Composable ColumnScope.()-> Unit = {}){
-
 
     Image(
         painter = painterResource(id = R.drawable.arc_bg),
@@ -296,23 +296,27 @@ fun Addbg( title:  String,onBackClick: () -> Unit,expanded: MutableState<Boolean
             Spacer(modifier = Modifier.size(8.dp))
 
         }
-        Box {
-            IconButton(onClick = { expanded.value = true }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.more_horiz),
-                    contentDescription = "More Options",
-                    tint = Color.White
-                )
-            }
+        if (showMoreButton) {  // Only show the more button if enabled
+            Box {
+                IconButton(onClick = { expanded.value = true }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.more_horiz),
+                        contentDescription = "More Options",
+                        tint = Color.White
+                    )
+                }
 
-            // Anchor menu to the box
-            DropdownMenu(
-                expanded = expanded.value,
-                onDismissRequest = { expanded.value = false },
-                modifier = Modifier.background(Color.White) // Fix invisible menu
-            ) {
-                onMoreClick()
+                DropdownMenu(
+                    expanded = expanded.value,
+                    onDismissRequest = { expanded.value = false },
+                    modifier = Modifier.background(Color.White)
+                ) {
+                    onMoreClick()
+                }
             }
+        } else {
+            // Add an empty box to maintain the Row's spacing
+            Box(modifier = Modifier.size(48.dp))  // Match the IconButton size
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.expensetracker.Room
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.text.TextStyle
 import com.example.expensetracker.getLast5WeeksWithSums
@@ -128,12 +129,44 @@ suspend fun getLast30Days(): List<DailyData> {
         return LocalDate.parse(dateString, formatter)
     }
 
-    // MONTHLY (SQL-powered)
+//BUDGET
+
+    suspend fun setBudget(amount: Double, monthYear: String) {
+        Log.d("BUDGET_DEBUG", "Attempting to save: $amount for $monthYear")
+        val entity = BudgetEntity(amount = amount, monthYear = monthYear)
+        val rowId = dao.insertOrUpdateBudget(entity)
+        Log.d("BUDGET_DEBUG", "Insert result: $rowId")
 
 
 
+        // Immediately verify what was stored
+        val saved = dao.getBudgetForMonth(monthYear)
+        Log.d("BUDGET_DEBUG", "Actually stored: ${saved?.amount ?: "null"}")
+    }
 
-}
+    suspend fun getBudgetForMonth(monthYear: String): BudgetEntity? {
+        return dao.getBudgetForMonth(monthYear)
+    }
+
+    suspend fun getBudgetStatus(monthYear: String): BudgetStatus {
+        return dao.getBudgetStatus(monthYear)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun getCurrentMonthBudgetStatus(): BudgetStatus {
+        return try {
+            val currentMonthYear = LocalDate.now().format(DateTimeFormatter.ofPattern("MM/yyyy"))
+            getBudgetStatus(currentMonthYear)
+        } catch (e: Exception) {
+            BudgetStatus(0.0, 0.0)
+        }
+    }
+
+    suspend fun getAllBudgets(): List<BudgetEntity> {
+        return dao.getAllBudgets()
+
+    }
+    }
 
 
 

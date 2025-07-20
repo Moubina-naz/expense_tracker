@@ -100,7 +100,32 @@ interface  TransactionDao {
         WHERE date BETWEEN :startDate AND :endDate
     """
     )
-    suspend  fun getSumBetweenDates(startDate: String, endDate: String): Double
+    suspend fun getSumBetweenDates(startDate: String, endDate: String): Double
+
+    //BUDGET.
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateBudget(budget: BudgetEntity)
+
+    @Query("SELECT * FROM budgets WHERE monthYear = :monthYear LIMIT 1")
+    suspend fun getBudgetForMonth(monthYear: String): BudgetEntity?
+
+    @Query("DELETE FROM budgets WHERE id = :id")
+    suspend fun deleteBudget(id: Long)
+
+    @Query("""
+SELECT 
+    b.amount AS budget,
+    (SELECT SUM(amount) 
+     FROM transactions 
+     WHERE substr(date, 4, 2) || '/' || substr(date, 7, 4) = :monthYear
+    ) AS spent
+FROM budgets b
+WHERE b.monthYear = :monthYear
+    """)
+    suspend fun getBudgetStatus(monthYear: String): BudgetStatus
+
+    @Query("SELECT * FROM budgets")
+    suspend fun getAllBudgets(): List<BudgetEntity>
 }
 
 

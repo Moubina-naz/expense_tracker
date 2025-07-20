@@ -1,5 +1,8 @@
 package com.example.expensetracker
 
+import MonthlyBudgetDialog
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -44,6 +47,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,11 +68,43 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen( navController: NavController = rememberNavController(),
                 viewModel : Transacviewmodel) {
     val context = LocalContext.current
+    var showBudgetDialog by remember { mutableStateOf(false) }
+    var budgetAmount by remember { mutableStateOf("") }
+
+    val budgetStatus by viewModel.budgetStatus.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadBudgetStatus()
+    }
+    LaunchedEffect(showBudgetDialog) {
+        if (showBudgetDialog) {
+            // Only update if we don't already have a value being edited
+            if (budgetAmount.isEmpty()) {
+                budgetAmount = if (viewModel.budgetStatus.value.budget > 0)
+                    viewModel.budgetStatus.value.budget.toInt().toString()
+                else ""
+            }
+        }
+    }
+
+    val (balanceFormatted, expenseFormatted) = remember(budgetStatus) {
+        val balance = (budgetStatus.budget - budgetStatus.spent).coerceAtLeast(0.0)
+        val expense = budgetStatus.spent
+
+        Pair(
+            "₹${"%,.0f".format(balance)}",
+            "₹${"%,.0f".format(expense)}"
+        )
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
 
@@ -97,14 +133,28 @@ fun HomeScreen( navController: NavController = rememberNavController(),
                         .align(Alignment.Center)
                         .offset(y = 150.dp)
                 ) {
+
                     CardItem(
-                        modifier = Modifier
+                        modifier = Modifier,
+                        onMenuClick = {    budgetAmount = if (budgetStatus.budget > 0.0) {
+                            budgetStatus.budget.toString()
+                        } else {
+                            ""
+                        }
+                            showBudgetDialog = true},
+                        userName = "Naz",
+                        balance = balanceFormatted,
+                        expense = expenseFormatted,
+                        isOverBudget = budgetStatus.spent > budgetStatus.budget,
+                        budgetStatus = budgetStatus
                     )
+
                 }
 
             }
 
             Spacer(modifier = Modifier.height(20.dp))
+
             Column {
                 var isClicked by remember { mutableStateOf(false) }
                 Box(modifier = Modifier
@@ -138,7 +188,27 @@ fun HomeScreen( navController: NavController = rememberNavController(),
 
 
     }
+        MonthlyBudgetDialog(
+            showDialog = showBudgetDialog,
+            monthLabel = getCurrentMonthLabel(),
+            budgetAmount = budgetAmount,
+            onBudgetAmountChange = { budgetAmount=it},
+            onDismiss = { showBudgetDialog = false },
+            onSave = {
+                budgetAmount.toDoubleOrNull()?.let { amount ->
+                    viewModel.saveBudget(amount)
+                }
+                showBudgetDialog = false
+            }
+        )
+    }
 }
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun getCurrentMonthLabel(): String {
+    val formatter = DateTimeFormatter.ofPattern("MMMM yyyy")
+    return LocalDate.now().format(formatter)
 }
 
 

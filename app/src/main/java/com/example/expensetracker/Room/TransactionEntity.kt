@@ -36,7 +36,7 @@ data class DailyData(
     var dayName: String="" // "Monday"
 )
 data class MonthlyData(
-    var monthYear: String, // Format: "YYYY-MM"
+    var monthYear: String="", // Format: "YYYY-MM"
     var totalExpenses: Double=0.0,
     @Ignore
     var monthName: String="" ) // Make nullable with default)
@@ -46,4 +46,15 @@ data class WeeklyData(
     var total: Double = 0.0,     // ← Now mutable with default
     @Ignore
     val label: String = ""       // ← Can stay immutable (ignored anyway)
+)
+@Entity(tableName = "budgets")
+data class BudgetEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
+    val amount: Double,
+    val monthYear: String, // Format: "MM/yyyy" (e.g., "06/2023")
+    val createdAt: Long = System.currentTimeMillis()
+)
+data class BudgetStatus(
+    val budget: Double,
+    val spent: Double
 )

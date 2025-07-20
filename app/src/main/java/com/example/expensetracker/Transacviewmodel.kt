@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.TextStyle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.expensetracker.Room.BudgetStatus
 import com.example.expensetracker.Room.CategoryItem
 import com.example.expensetracker.Room.CategoryTotal
 import com.example.expensetracker.Room.DailyData
@@ -48,233 +49,229 @@ import java.util.Locale
     private val repository : TransactionRepository = Graph.TransactionRepository)
     : ViewModel() {
 
-    var transacTitlestate by mutableStateOf("")
-    var transacAmountstate by mutableStateOf("")
-    var transacDatestate by mutableStateOf(getCurrentDate())
-    var transacIconstate by mutableStateOf(0)
-    var selectedCategory by mutableStateOf<CategoryItem?>(null)
-    var currentEditingId by mutableStateOf<Long?>(null) // Track which transaction we're editing
+     var transacTitlestate by mutableStateOf("")
+     var transacAmountstate by mutableStateOf("")
+     var transacDatestate by mutableStateOf(getCurrentDate())
+     var transacIconstate by mutableStateOf(0)
+     var selectedCategory by mutableStateOf<CategoryItem?>(null)
+     var currentEditingId by mutableStateOf<Long?>(null) // Track which transaction we're editing
 
 
-    fun onTransacTitleChange(newTitle: String) {
-        transacTitlestate = newTitle
-    }
+     fun onTransacTitleChange(newTitle: String) {
+         transacTitlestate = newTitle
+     }
 
-    fun onTransacAmountChange(newAmount: String) {
-        transacAmountstate = newAmount
-    }
+     fun onTransacAmountChange(newAmount: String) {
+         transacAmountstate = newAmount
+     }
 
-    fun onTransacDateChange(newDate: String) {
-        val formattedDate = if (newDate.matches(Regex("\\d{2}/\\d{2}/\\d{4}"))) {
-            newDate
-        } else {
-            formatDateSlash(newDate)
-        }
-        transacDatestate = formattedDate
+     fun onTransacDateChange(newDate: String) {
+         val formattedDate = if (newDate.matches(Regex("\\d{2}/\\d{2}/\\d{4}"))) {
+             newDate
+         } else {
+             formatDateSlash(newDate)
+         }
+         transacDatestate = formattedDate
 
-    }
+     }
 
-    fun onTransacIconChange(newIcon: Int) {
-        transacIconstate = newIcon
-    }
+     fun onTransacIconChange(newIcon: Int) {
+         transacIconstate = newIcon
+     }
 
-    val transactionList = repository.getTransaction()
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+     val transactionList = repository.getTransaction()
+         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    fun resetForNewTransaction() {
-        currentEditingId = null
-        transacTitlestate = ""
-        transacAmountstate = ""
-        transacDatestate = getCurrentDate()
-        transacIconstate = 0
-        selectedCategory = null
-    }
-
-
-    fun addTransaction(transaction: TransactionEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
-
-            repository.addTransaction(transaction)
-        }
-    }
-
-    fun updateTransaction(transaction: TransactionEntity) {
-        viewModelScope.launch {
-            repository.updateTransaction(transaction)
-        }
-    }
+     fun resetForNewTransaction() {
+         currentEditingId = null
+         transacTitlestate = ""
+         transacAmountstate = ""
+         transacDatestate = getCurrentDate()
+         transacIconstate = 0
+         selectedCategory = null
+     }
 
 
-    fun deleteTransaction(transaction: TransactionEntity) {
-        viewModelScope.launch {
-            repository.deleteTransaction(transaction)
-        }
-    }
+     fun addTransaction(transaction: TransactionEntity) {
+         viewModelScope.launch(Dispatchers.IO) {
 
-    val recentTransactions = repository.getRecentTransactions()
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+             repository.addTransaction(transaction)
+         }
+     }
 
-    fun loadTransactionForEditing(transaction: TransactionEntity) {
-        currentEditingId = transaction.id
-        transacTitlestate = transaction.title
-        transacAmountstate = transaction.amount.toString()
-        transacDatestate = transaction.date
-        transacIconstate = transaction.icon
-        selectedCategory = categories.find { it.iconRes == transaction.icon }
-    }
-
-    fun clearFields() {
-        currentEditingId = null
-        transacTitlestate = ""
-        transacAmountstate = ""
-        transacDatestate = getCurrentDate()
-        transacIconstate = 0
-        selectedCategory = null
-    }
+     fun updateTransaction(transaction: TransactionEntity) {
+         viewModelScope.launch {
+             repository.updateTransaction(transaction)
+         }
+     }
 
 
-    fun onCategorySelected(category: CategoryItem) {
-        selectedCategory = category
-        transacIconstate = category.iconRes
-    }
+     fun deleteTransaction(transaction: TransactionEntity) {
+         viewModelScope.launch {
+             repository.deleteTransaction(transaction)
+         }
+     }
 
-    fun getTransacById(id: Long): TransactionEntity? {
-        return transactionList.value.find { it.id == id }
-    }
+     val recentTransactions = repository.getRecentTransactions()
+         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    fun getCurrentDate(): String {
-        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        return sdf.format(Date())
-    }
+     fun loadTransactionForEditing(transaction: TransactionEntity) {
+         currentEditingId = transaction.id
+         transacTitlestate = transaction.title
+         transacAmountstate = transaction.amount.toString()
+         transacDatestate = transaction.date
+         transacIconstate = transaction.icon
+         selectedCategory = categories.find { it.iconRes == transaction.icon }
+     }
 
-    val categories = listOf(
-        CategoryItem("Food", R.drawable.takeout),
-        CategoryItem("Shopping", R.drawable.shopping),
-        CategoryItem("Travel", R.drawable.travel),
-        CategoryItem("Bills", R.drawable.bills),
-        CategoryItem("Groceries", R.drawable.grocery),
-        CategoryItem("Entertainment", R.drawable.entertaintment),
-        CategoryItem("Transport", R.drawable.transport)
-    )
-
-    //SEARCH
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery = _searchQuery.asStateFlow()
-
-    private val _isSearching = MutableStateFlow(false)
-    val isSearching = _isSearching.asStateFlow()
-
-    val filteredTransactions: StateFlow<List<TransactionEntity>> =
-        searchQuery
-            .debounce(300)
-            .distinctUntilChanged()
-            .flatMapLatest { query ->
-                _isSearching.value = true
-                if (query.isBlank()) {
-                    repository.getTransaction()
-                } else {
-                    val q = "%${query.lowercase()}%"
-                    repository.searchTransactions(q)
-                        .catch { emit(emptyList()) }
-                        .onCompletion { _isSearching.value = false }
-                }
-            }
-            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    fun updateSearchQuery(newQuery: String) {
-        _searchQuery.value = newQuery
-        _isSearching.value = newQuery.isNotBlank()
-    }
-
-    //PIECHARTSTATS
-
-    private fun getCurrentMonthYear(): String {
-        val calendar = Calendar.getInstance()
-        val month = String.format("%02d", calendar.get(Calendar.MONTH) + 1)
-        val year = calendar.get(Calendar.YEAR)
-        return "$month/$year"
-    }
-
-    private val _selectedMonth = MutableStateFlow(getCurrentMonthYear())
-    val selectedMonth: StateFlow<String> = _selectedMonth
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
-    private val _categoryTotals = MutableStateFlow<List<CategoryTotal>>(emptyList())
-    val categoryTotals: StateFlow<List<CategoryTotal>> = _categoryTotals
-
-    init {
-        loadCategoryData()
-    }
-
-    fun selectMonth(month: String, year: String) {
-        // Ensure month is 2 digits
-        val formattedMonth = if (month.length == 1) "0$month" else month
-        _selectedMonth.value = "$formattedMonth/$year"
-        loadCategoryData()
-    }
-
-    private fun loadData() {
-        viewModelScope.launch {
-            repository.getCategoryTotals(
-                selectedMonth.value.split("/")[0],
-                selectedMonth.value.split("/")[1]
-            )
-                .first() // 👈 Only take the first emission
-                .let { _categoryTotals.value = it }
-        }
-    }
-
-    private fun loadCategoryData() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val (month, year) = _selectedMonth.value.split("/")
-                val totals = withTimeout(5000) {
-                    repository.getCategoryTotals(month, year).first()
-                }
-                _categoryTotals.value = totals
-            } catch (e: Exception) {
-                println("Error loading category data: ${e.message}")
-                _categoryTotals.value = emptyList()
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun generatePastMonths(count: Int = 6): List<MonthItem> {
-        val current = YearMonth.now()
-        return (0 until count).map { offset ->
-            val date = current.minusMonths(offset.toLong())
-            MonthItem(
-                label = "${
-                    date.month.getDisplayName(
-                        java.time.format.TextStyle.SHORT,
-                        Locale.getDefault()
-                    )
-                } ${date.year}",
-                value = date.format(DateTimeFormatter.ofPattern("MM/yyyy"))
-            )
-        }.reversed()
-    }
-
-    //LINECHART
+     fun clearFields() {
+         currentEditingId = null
+         transacTitlestate = ""
+         transacAmountstate = ""
+         transacDatestate = getCurrentDate()
+         transacIconstate = 0
+         selectedCategory = null
+     }
 
 
-    private val _dailyData = MutableStateFlow<List<DailyData>>(emptyList())
-    val dailyData: StateFlow<List<DailyData>> = _dailyData
+     fun onCategorySelected(category: CategoryItem) {
+         selectedCategory = category
+         transacIconstate = category.iconRes
+     }
+
+     fun getTransacById(id: Long): TransactionEntity? {
+         return transactionList.value.find { it.id == id }
+     }
+
+     fun getCurrentDate(): String {
+         val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+         return sdf.format(Date())
+     }
+
+     val categories = listOf(
+         CategoryItem("Food", R.drawable.takeout),
+         CategoryItem("Shopping", R.drawable.shopping),
+         CategoryItem("Travel", R.drawable.travel),
+         CategoryItem("Bills", R.drawable.bills),
+         CategoryItem("Groceries", R.drawable.grocery),
+         CategoryItem("Entertainment", R.drawable.entertaintment),
+         CategoryItem("Transport", R.drawable.transport)
+     )
+
+     //SEARCH
+     private val _searchQuery = MutableStateFlow("")
+     val searchQuery = _searchQuery.asStateFlow()
+
+     private val _isSearching = MutableStateFlow(false)
+     val isSearching = _isSearching.asStateFlow()
+
+     val filteredTransactions: StateFlow<List<TransactionEntity>> =
+         searchQuery
+             .debounce(300)
+             .distinctUntilChanged()
+             .flatMapLatest { query ->
+                 _isSearching.value = true
+                 if (query.isBlank()) {
+                     repository.getTransaction()
+                 } else {
+                     val q = "%${query.lowercase()}%"
+                     repository.searchTransactions(q)
+                         .catch { emit(emptyList()) }
+                         .onCompletion { _isSearching.value = false }
+                 }
+             }
+             .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+     fun updateSearchQuery(newQuery: String) {
+         _searchQuery.value = newQuery
+         _isSearching.value = newQuery.isNotBlank()
+     }
+
+     //PIECHARTSTATS
+
+     private fun getCurrentMonthYear(): String {
+         val calendar = Calendar.getInstance()
+         val month = String.format("%02d", calendar.get(Calendar.MONTH) + 1)
+         val year = calendar.get(Calendar.YEAR)
+         return "$month/$year"
+     }
+
+     private val _selectedMonth = MutableStateFlow(getCurrentMonthYear())
+     val selectedMonth: StateFlow<String> = _selectedMonth
+
+     private val _isLoading = MutableStateFlow(false)
+     val isLoading: StateFlow<Boolean> = _isLoading
+
+     private val _categoryTotals = MutableStateFlow<List<CategoryTotal>>(emptyList())
+     val categoryTotals: StateFlow<List<CategoryTotal>> = _categoryTotals
+
+     init {
+         loadCategoryData()
+     }
+
+     fun selectMonth(month: String, year: String) {
+         // Ensure month is 2 digits
+         val formattedMonth = if (month.length == 1) "0$month" else month
+         _selectedMonth.value = "$formattedMonth/$year"
+         loadCategoryData()
+     }
+
+     private fun loadData() {
+         viewModelScope.launch {
+             repository.getCategoryTotals(
+                 selectedMonth.value.split("/")[0],
+                 selectedMonth.value.split("/")[1]
+             )
+                 .first() // 👈 Only take the first emission
+                 .let { _categoryTotals.value = it }
+         }
+     }
+
+     private fun loadCategoryData() {
+         viewModelScope.launch {
+             _isLoading.value = true
+             try {
+                 val (month, year) = _selectedMonth.value.split("/")
+                 val totals = withTimeout(5000) {
+                     repository.getCategoryTotals(month, year).first()
+                 }
+                 _categoryTotals.value = totals
+             } catch (e: Exception) {
+                 println("Error loading category data: ${e.message}")
+                 _categoryTotals.value = emptyList()
+             } finally {
+                 _isLoading.value = false
+             }
+         }
+     }
+
+     @RequiresApi(Build.VERSION_CODES.O)
+     fun generatePastMonths(count: Int = 6): List<MonthItem> {
+         val current = YearMonth.now()
+         return (0 until count).map { offset ->
+             val date = current.minusMonths(offset.toLong())
+             MonthItem(
+                 label = "${
+                     date.month.getDisplayName(
+                         java.time.format.TextStyle.SHORT,
+                         Locale.getDefault()
+                     )
+                 } ${date.year}",
+                 value = date.format(DateTimeFormatter.ofPattern("MM/yyyy"))
+             )
+         }.reversed()
+     }
+
+     //LINECHART
+
+
+     private val _dailyData = MutableStateFlow<List<DailyData>>(emptyList())
+     val dailyData: StateFlow<List<DailyData>> = _dailyData
 
      private val _monthlyData = MutableStateFlow<List<MonthlyData>>(emptyList())
      val monthlyData: StateFlow<List<MonthlyData>> = _monthlyData
 
-     /*@RequiresApi(Build.VERSION_CODES.O)
-     fun loadDailyData() = viewModelScope.launch {
-         _dailyData.value = repository.getLast30Days()
-     }
-      */
+     @RequiresApi(Build.VERSION_CODES.O)
      fun debugMonthlyData() {
          viewModelScope.launch {
              val data = repository.getLast12Months()
@@ -284,10 +281,12 @@ import java.util.Locale
              }
          }
      }
+
      @RequiresApi(Build.VERSION_CODES.O)
      fun loadMonthlyData() = viewModelScope.launch {
          _monthlyData.value = repository.getLast12Months()
      }
+
      // Added better error handling and data formatting
      private val _weeklyData = MutableStateFlow<List<WeeklyData>>(emptyList())
      val weeklyData: StateFlow<List<WeeklyData>> = _weeklyData
@@ -296,51 +295,98 @@ import java.util.Locale
      fun loadWeeklyData() = viewModelScope.launch {
          _weeklyData.value = repository.getLast5Weeks()
      }
+
      fun initDataIfNeeded() {
          if (_dailyData.value.isEmpty() &&
              _weeklyData.value.isEmpty() &&
              _monthlyData.value.isEmpty() &&
-             Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+             Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+         ) {
              viewModelScope.launch { loadDataSafely() }
          }
      }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private suspend fun loadDataSafely() {
-        loadWeeklyData()
-       // loadDailyData()
-        loadMonthlyData()
-    }
-  fun debugPrintTransactions() {
-      viewModelScope.launch {
-          delay(2000)
-          repository.getTransaction().collect { transactions ->
-              // Use a UNIQUE TAG and log level
-              Log.v("EXPENSE_DEBUG", "=== TRANSACTION DUMP ===") // Verbose level
-              transactions.forEach {
-                  Log.v("EXPENSE_DEBUG",
-                      """
+     @RequiresApi(Build.VERSION_CODES.O)
+     private suspend fun loadDataSafely() {
+         loadWeeklyData()
+         // loadDailyData()
+         loadMonthlyData()
+     }
+
+     fun debugPrintTransactions() {
+         viewModelScope.launch {
+             delay(2000)
+             repository.getTransaction().collect { transactions ->
+                 // Use a UNIQUE TAG and log level
+                 Log.v("EXPENSE_DEBUG", "=== TRANSACTION DUMP ===") // Verbose level
+                 transactions.forEach {
+                     Log.v(
+                         "EXPENSE_DEBUG",
+                         """
                     ID: ${it.id}
                     Title: ${it.title}
                     Amount: ${it.amount}
                     Date: ${it.date}
                     ----------------------
                     """.trimIndent()
-                  )
-              }
-          }
-      }
-  }
+                     )
+                 }
+             }
+         }
+     }
 
 
+     //debugging
+     fun printData() {
+         viewModelScope.launch {
+             println("Daily Data: ${dailyData.value}")
+             println("Weekly Data: ${weeklyData.value}")
+         }
+     }
 
-    //debugging
-    fun printData() {
-        viewModelScope.launch {
-            println("Daily Data: ${dailyData.value}")
-            println("Weekly Data: ${weeklyData.value}")
-        }
-    }
-}
+     //Budget
+
+     // ViewModel
+     private val _budgetStatus = MutableStateFlow(BudgetStatus(0.0, 0.0)) // Non-null default
+     val budgetStatus: StateFlow<BudgetStatus> = _budgetStatus
+
+     @RequiresApi(Build.VERSION_CODES.O)
+     fun saveBudget(amount: Double) {
+         val monthYear = LocalDate.now().format(DateTimeFormatter.ofPattern("MM/yyyy"))
+         viewModelScope.launch {
+             repository.setBudget(amount, monthYear)
+             val allBudgets = repository.getAllBudgets()
+             Log.d("BUDGET_DEBUG", "All budgets: $allBudgets")
+             // DEBUG: Print all budgets
+             val budgets = repository.getAllBudgets()
+             Log.d("BUDGET_DEBUG", "All budgets: $budgets")
+
+             loadBudgetStatus()
+         }
+     }
+
+     @RequiresApi(Build.VERSION_CODES.O)
+     fun loadBudgetStatus() {
+         viewModelScope.launch {
+             val currentMonthYear = LocalDate.now().format(DateTimeFormatter.ofPattern("MM/yyyy"))
+             val status = repository.getBudgetStatus(currentMonthYear)
+
+             // Debug logs
+             Log.d("BUDGET_STATUS", """
+            Month: $currentMonthYear
+            Budget: ${status.budget}
+            Spent: ${status.spent}
+            Query: SELECT ${status.budget} as budget, 
+                  (SELECT SUM(amount) FROM transactions 
+                   WHERE substr(date, 4, 2) || '/' || substr(date, 7, 4) = '$currentMonthYear')
+        """)
+
+             _budgetStatus.value = status
+         }
+
+     }
+ }
+
+
 
 

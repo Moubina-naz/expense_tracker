@@ -9,39 +9,19 @@ import com.example.expensetracker.Converters
 import com.example.expensetracker.Room.TransactionDao
 import com.example.expensetracker.Room.TransactionEntity
 
-@Database(entities = [TransactionEntity::class], version = 3)
+@Database(entities = [TransactionEntity::class,BudgetEntity::class], version = 4)
 @TypeConverters(Converters::class)
 abstract class TransactionsDatabase : RoomDatabase() {
 
     abstract fun transactionDao(): TransactionDao
     companion object {
-        val MIGRATION_1_2 = object : Migration(2, 3) {
+        val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // Add any schema changes here
-                // Example if you added a new column:
-                // database.execSQL("ALTER TABLE transactions ADD COLUMN new_column TEXT DEFAULT NULL")
             }
         }
 
 
     }}
 
-  /*  companion object {
-        @Volatile
-        private var INSTANCE: TransactionsDatabase? = null
 
-        fun getDatabase(context: Context): TransactionsDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    TransactionsDatabase::class.java,
-                    "expense_db"
-                ).fallbackToDestructiveMigration().build()
-                INSTANCE = instance
-                instance
-            }
-        }
-    }
-
-   */
 
