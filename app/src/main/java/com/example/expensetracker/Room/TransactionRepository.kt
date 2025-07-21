@@ -130,7 +130,7 @@ suspend fun getLast30Days(): List<DailyData> {
     }
 
 //BUDGET
-
+//REPO
     suspend fun setBudget(amount: Double, monthYear: String) {
         Log.d("BUDGET_DEBUG", "Attempting to save: $amount for $monthYear")
         val entity = BudgetEntity(amount = amount, monthYear = monthYear)

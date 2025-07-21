@@ -352,15 +352,10 @@ import java.util.Locale
 
      @RequiresApi(Build.VERSION_CODES.O)
      fun saveBudget(amount: Double) {
-         val monthYear = LocalDate.now().format(DateTimeFormatter.ofPattern("MM/yyyy"))
          viewModelScope.launch {
+             val monthYear = LocalDate.now().format(DateTimeFormatter.ofPattern("MM/yyyy"))
              repository.setBudget(amount, monthYear)
-             val allBudgets = repository.getAllBudgets()
-             Log.d("BUDGET_DEBUG", "All budgets: $allBudgets")
-             // DEBUG: Print all budgets
-             val budgets = repository.getAllBudgets()
-             Log.d("BUDGET_DEBUG", "All budgets: $budgets")
-
+             // ← Add this
              loadBudgetStatus()
          }
      }

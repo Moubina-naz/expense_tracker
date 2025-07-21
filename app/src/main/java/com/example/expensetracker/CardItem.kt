@@ -42,9 +42,14 @@ fun CardItem(
     isOverBudget: Boolean,
     budgetStatus: BudgetStatus // Add budget status parameter
 ) {
-    val progress = if (budgetStatus.budget > 0.0) {
-        (budgetStatus.spent / budgetStatus.budget).toFloat().coerceIn(0f, 1f)
-    } else 0f
+    val progress = when {
+        budgetStatus.budget <= 0 -> 0f  // No budget set
+        budgetStatus.spent >= budgetStatus.budget -> 1f  // Overspent (100%)
+        else -> (budgetStatus.spent / budgetStatus.budget).toFloat()
+    }
+
+    val remaining = budgetStatus.budget - budgetStatus.spent
+    val balanceFormatted = "₹${"%,.0f".format(remaining.coerceAtLeast(0.0))}"
     val warningColor = if (isOverBudget) Color.Red else MaterialTheme.colorScheme.error
     Column(
         modifier = modifier
@@ -113,7 +118,11 @@ fun CardItem(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp),
-                    color = if (progress > 0.7f) Color.Red else Color.Green,
+                    color = when {
+                        progress >= 1f -> Color.Red
+                        progress > 0.7f -> Color.Yellow
+                        else -> Color.Green
+                    },
                     trackColor = Color.LightGray.copy(alpha = 0.4f)
                 )
 

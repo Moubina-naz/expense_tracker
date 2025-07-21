@@ -250,7 +250,7 @@ fun ArcBg(modifier: Modifier = Modifier, name: String) {
     }
 }
 
-/*@Composable
+/* @Composable
 @Preview(showBackground = true, showSystemUi = true)
 fun PreviewHomeScreen() {
     // Create a test ViewModel instance

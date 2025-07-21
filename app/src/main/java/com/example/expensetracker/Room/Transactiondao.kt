@@ -113,14 +113,13 @@ interface  TransactionDao {
     suspend fun deleteBudget(id: Long)
 
     @Query("""
-SELECT 
-    b.amount AS budget,
-    (SELECT SUM(amount) 
-     FROM transactions 
-     WHERE substr(date, 4, 2) || '/' || substr(date, 7, 4) = :monthYear
-    ) AS spent
-FROM budgets b
-WHERE b.monthYear = :monthYear
+    SELECT 
+        (SELECT amount FROM budgets 
+         WHERE monthYear = :monthYear 
+         ORDER BY createdAt DESC LIMIT 1) AS budget,
+        
+        (SELECT SUM(amount) FROM transactions 
+         WHERE substr(date, 4, 2) || '/' || substr(date, 7, 4) = :monthYear) AS spent
     """)
     suspend fun getBudgetStatus(monthYear: String): BudgetStatus
 
