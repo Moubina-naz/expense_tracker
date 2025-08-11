@@ -9,4 +9,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="base">#669999</color>
     <color name="card">#507878</color>
+    <color name="itemColor">#cce8e8</color>
+    <color name="dot">#8ad4d4</color>
 </resources>

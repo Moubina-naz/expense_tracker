@@ -57,33 +57,7 @@ class TransactionRepository(private val dao: TransactionDao) {
     // DAILY (SQL-powered)
 
 
-//linechart montjly
-/*@RequiresApi(Build.VERSION_CODES.O)
-suspend fun getLast30Days(): List<DailyData> {
-    val endDate = LocalDate.now()
-    val startDate = endDate.minusDays(9) // 10 days total (including today)
-
-    val dbDateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-    val displayFormatter = DateTimeFormatter.ofPattern("d''MMM")
-        .withLocale(Locale.ENGLISH) // Force English month names
-
-    return dao.getDailyTotals(
-        startDate.format(dbDateFormatter),
-        endDate.format(dbDateFormatter)
-    ).first().map { dbData ->
-        val date = try {
-            LocalDate.parse(dbData.date, dbDateFormatter)
-        } catch (e: Exception) {
-            LocalDate.now() // Fallback to today if parsing fails
-        }
-
-        DailyData(
-            date = dbData.date,
-            total = dbData.total,
-            dayName = date.format(displayFormatter) // Ensures consistent formatting
-        )
-    }.sortedBy { it.date }
-}*/
+//linechart REPO montjly
 
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun getLast12Months(): List<MonthlyData> {

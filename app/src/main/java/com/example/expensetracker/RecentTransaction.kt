@@ -31,12 +31,12 @@ fun TransactionItem(transaction: TransactionEntity, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .padding(vertical = 8.dp, horizontal = 10.dp)
             .clickable { onClick() },
 
         elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
 
-                colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.base))
+                colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.itemColor))
     ) {
         Row(
             modifier = Modifier
@@ -52,19 +52,19 @@ fun TransactionItem(transaction: TransactionEntity, onClick: () -> Unit) {
                 Image(
                     painter = painterResource(id = safeIcon),
                     contentDescription = "",
-                    modifier = Modifier.size(50.dp)
+                    modifier = Modifier.size(45.dp)
                 )
                 Spacer(modifier = Modifier.size(8.dp))
 
                 Column {
-                    Text(text = transaction.title, fontSize = 18.sp)
-                    Text(text = transaction.amount.toString(), fontSize = 20.sp)
+                    Text(text = transaction.title, fontSize = 20.sp)
+                    Text(text = transaction.date, fontSize = 12.sp)
                 }
             }
 
             Text(
-                text = transaction.date,
-                fontSize = 12.sp,
+                text = transaction.amount.toString(),
+                fontSize = 24.sp,
                 modifier = Modifier.align(Alignment.CenterVertically) // Ensures vertical alignment
             )
         }
@@ -75,5 +75,6 @@ fun TransactionItem(transaction: TransactionEntity, onClick: () -> Unit) {
 @Composable
 @Preview(showBackground = true)
 fun previewRecentTransactions() {
+
 }
 

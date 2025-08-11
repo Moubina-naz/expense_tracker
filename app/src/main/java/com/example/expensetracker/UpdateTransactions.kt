@@ -61,21 +61,6 @@ fun UpdateTransactions(
                     shadowElevation = 2.dp,
                     color = Color.White
                 ) {
-                    /*val t = viewModel.getTransacById(id)
-
-                    LaunchedEffect(t)  {
-                        if (t != null) {
-                            viewModel.onTransacTitleChange(t.title)
-                            viewModel.onTransacAmountChange(t.amount)
-                            viewModel.onTransacIconChange(t.icon)
-                            viewModel.onTransacDateChange(t.date)
-                            //iewModel.onTransacIdChange(t.id)
-                        }
-                    }
-
-
-
-                     */
                     Dataform(
                         id = id,
                         viewmodel = viewModel,

@@ -262,7 +262,7 @@ import java.util.Locale
          }.reversed()
      }
 
-     //LINECHART
+     //LINECHARTVIEWMODEL
 
 
      private val _dailyData = MutableStateFlow<List<DailyData>>(emptyList())

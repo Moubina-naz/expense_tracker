@@ -120,7 +120,7 @@ fun HomeScreen( navController: NavController = rememberNavController(),
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(350.dp)
+                        .height(300.dp)
                 ) {
                     ArcBg(name = "John Doe")
                 }
@@ -131,7 +131,7 @@ fun HomeScreen( navController: NavController = rememberNavController(),
                         .height(350.dp)
                         .size(150.dp)
                         .align(Alignment.Center)
-                        .offset(y = 150.dp)
+                        .offset(y = 130.dp)
                 ) {
 
                     CardItem(
@@ -153,7 +153,7 @@ fun HomeScreen( navController: NavController = rememberNavController(),
 
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(60.dp))
 
             Column {
                 var isClicked by remember { mutableStateOf(false) }

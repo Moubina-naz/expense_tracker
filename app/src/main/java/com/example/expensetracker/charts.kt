@@ -3,6 +3,7 @@ package com.example.expensetracker
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.room.TypeConverter
 import java.time.LocalDate
 
@@ -38,12 +39,12 @@ class Converters {
 }
 data class GraphAppearance(
     val backgroundColor: Color = Color.White,
-    val graphColor: Color = Color.Cyan,
+    val graphColor: Color = Color(0xFF8AD4D4) ,
     //val graphAxisColor: Color = Color.Gray,
-    val circleColor: Color = Color.Red,
+    val circleColor: Color = Color(0xFF8AD4D4),
     val isCircleVisible: Boolean = true,
     val isColorAreaUnderChart: Boolean = true,
-    val colorAreaUnderChart: Color = Color.Cyan.copy(alpha = 0.3f),
+    val colorAreaUnderChart: Color = Color(0xFF8AD4D4).copy(alpha = 0.3f),
     val graphThickness: Float = 4f
 )
 sealed class ChartType {

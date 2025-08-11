@@ -30,7 +30,8 @@ import com.example.expensetracker.Room.CategoryItem
 fun CategoryDropdownGrid(
     cats: List<CategoryItem>,
     selectedCategory: CategoryItem?,
-    onCategorySelected: (CategoryItem) -> Unit
+    onCategorySelected: (CategoryItem) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var opened by remember { mutableStateOf(false) }
     val rotation by animateFloatAsState(if (opened) 180f else 0f)

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,9 +19,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -50,6 +54,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Transaction
@@ -142,7 +148,7 @@ fun Dataform(
 
     ) {
     Column(
-        modifier = Modifier
+        modifier = Modifier.verticalScroll(rememberScrollState())
             .padding(20.dp)
             .clip(RoundedCornerShape(60.dp))
             .background(Color.White)
@@ -193,9 +199,14 @@ fun Dataform(
 
         Box(modifier = Modifier.height(300.dp)) {
             CategoryDropdownGrid(
-                cats = viewmodel?.categories ?: emptyList(), // ✅ use VM data
-                selectedCategory = viewmodel?.selectedCategory,
-                onCategorySelected = {category-> viewmodel?.onCategorySelected(category) }
+                cats = viewmodel.categories,
+                selectedCategory = viewmodel.selectedCategory,
+                onCategorySelected = { category ->
+                    viewmodel.onCategorySelected(category)
+                },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(0f) // Base lay
             )
         }
         Spacer(modifier = Modifier.height(20.dp))
@@ -220,9 +231,18 @@ fun Dataform(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(100.dp)
+                .height(56.dp) .zIndex(1f) ,
+                    shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = colorResource(id = R.color.base), // Blue color
+                contentColor = Color.White          // White text
+            ),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            Text(if (transaction != null) "Update" else "Save")
+            Text(
+                text = if (transaction != null) "Update" else "Save",
+                fontSize = 18.sp
+            )
         }
 
     }
