@@ -88,8 +88,6 @@ fun AddTransactions(
                 "Add Transaction",
                 onBackClick = { navController.popBackStack()})
         }
-
-        // Form Content (PUSHED UP using padding from top instead of align bottom)
         Column(
             modifier = Modifier
                 .fillMaxSize()
