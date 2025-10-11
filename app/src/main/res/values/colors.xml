@@ -8,7 +8,14 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="base">#669999</color>
-    <color name="card">#507878</color>
-    <color name="itemColor">#cce8e8</color>
-    <color name="dot">#8ad4d4</color>
+    <color name="card">#304E4E</color>
+    <color name="itemColor">#FFD5F3F3</color>
+    <color name="dPurple">#003366</color>
+    <color name="Lpurple">#8e669b</color>
+    <color name="orange">#f18663</color>
+    <color name="greyicon">#C7C6CC</color>
+    <color name="greytext">#C7C6CC</color>
+    <color name="darktext">#2C2C2C</color>#0f0510
+    <color name="darkesttext">#0f0510</color>
+    <color name="pastelpurple">#F4E9F9</color>
 </resources>

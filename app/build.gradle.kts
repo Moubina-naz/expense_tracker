@@ -58,7 +58,7 @@ android {
 
 dependencies {
     //val nav_version = "2.7.5"
-   // val compose_version = "1.6.0-alpha08"
+    // val compose_version = "1.6.0-alpha08"
     //val room_version = "2.6.0"
 
     // Core and Lifecycle
@@ -90,6 +90,7 @@ dependencies {
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.androidx.appcompat)
     ksp(libs.room.compiler) // Use KSP instead of kapt
     // Testing
     testImplementation(libs.junit)
@@ -101,4 +102,20 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
+
+    //retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation ("androidx.compose.runtime:runtime-livedata:1.8.3")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    // DataStore Preferences
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore-core:1.0.0")
+
+    // Lifecycle (for DataStore)
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+
 }
