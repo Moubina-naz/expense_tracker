@@ -22,7 +22,10 @@ interface  TransactionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addTransaction(transaction: TransactionEntity)
 
-    @Query("SELECT * FROM transactions ORDER BY date DESC")
+    @Query("SELECT * FROM transactions \n" +
+            "    ORDER BY \n" +
+            "        substr(date, 7, 4) || substr(date, 4, 2) || substr(date, 1, 2) DESC,\n" +
+            "        id DESC ")
     fun getAllTransactions(): Flow<List<TransactionEntity>>
 
     @Update
@@ -34,7 +37,9 @@ interface  TransactionDao {
     @Query("SELECT * FROM transactions WHERE id = :id ")
     abstract fun getTransactionById(id: Long): Flow<TransactionEntity>
 
-    @Query("SELECT * FROM transactions ORDER BY date DESC LIMIT 6")
+    @Query("SELECT * FROM transactions \n" +
+            "ORDER BY \n" + "substr(date, 7, 4) || substr(date, 4, 2) || substr(date, 1, 2) DESC,\n" + "id DESC \n" +
+            "LIMIT 6")
     abstract fun getRecentTransactions(): Flow<List<TransactionEntity>>
 
     @Query("""
@@ -139,6 +144,12 @@ interface  TransactionDao {
 
     @Query("SELECT * FROM budgets")
     suspend fun getAllBudgets(): List<BudgetEntity>
+
+    @Query("UPDATE transactions SET amount = amount * :rate")
+    suspend fun convertAllTransactions(rate: Double)
+
+    @Query("UPDATE budgets SET amount = amount * :rate")
+    suspend fun convertAllBudgets(rate: Double)
 
     @Query("""
         SELECT * FROM transactions 

@@ -9,6 +9,8 @@ import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,7 +36,29 @@ fun SettingsScreen(navController: NavController = rememberNavController(),
                    viewModel : Transacviewmodel
 ) {
     var showBudgetDialog by remember { mutableStateOf(false) }
+    var showKeyDialog by remember { mutableStateOf(false) }
     var budgetAmount by remember { mutableStateOf("") }
+    var apiKey by remember { mutableStateOf(viewModel.getApiKey() ?: "") }
+    val budgetStatus by viewModel.budgetStatus.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val userPrefs = remember { com.example.expensetracker.data.models.UserPreferences(context) }
+    val currentCurrency = userPrefs.getUserCurrency()
+    val currencySymbol = remember(currentCurrency) {
+        com.example.expensetracker.utils.CurrencyManager.getCurrencySymbol(currentCurrency)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadBudgetStatus()
+    }
+
+    LaunchedEffect(showBudgetDialog) {
+        if (showBudgetDialog) {
+            budgetAmount = if (budgetStatus.budget > 0)
+                budgetStatus.budget.toInt().toString()
+            else ""
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -58,7 +82,7 @@ fun SettingsScreen(navController: NavController = rememberNavController(),
             // Title in the center
             Text(
                 text = "Settings",
-                fontSize = 24.sp,
+                style = MaterialTheme.typography.headlineLarge,
                 color = Color.Black,
                 modifier = Modifier.align(Alignment.Center)
             )
@@ -66,13 +90,25 @@ fun SettingsScreen(navController: NavController = rememberNavController(),
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Menu Items
-        MenuItem(title = "Profile", icon = Icons.Default.Person, onClick = { navController.navigate(
+
+    MenuItem(title = "Profile", icon = Icons.Default.Person, onClick = { navController.navigate(
             EditProfileScrn
         ) })
 
-    MenuItem(title = "Currency", value = "INR", icon = Icons.Default.AttachMoney, onClick = { navController.navigate(CurrencyScrn)})
-    MenuItem(title = "Budget", value = "Off", icon = Icons.Default.NotificationsOff, onClick = { showBudgetDialog = true })
+    MenuItem(title = "Currency", value = currentCurrency, icon = Icons.Default.AttachMoney, onClick = { navController.navigate(CurrencyScrn)})
+    
+    val budgetValue = if (budgetStatus.budget > 0) "$currencySymbol${budgetStatus.budget.toInt()}" else "Not Set"
+    MenuItem(
+        title = "Budget", 
+        value = budgetValue, 
+        icon = if (budgetStatus.budget > 0) Icons.Default.NotificationsActive else Icons.Default.NotificationsOff, 
+        onClick = { showBudgetDialog = true }
+    )
+    
+    MenuItem(title = "AI Insights Key", value = if (userPrefs.getGeminiApiKey().isNullOrBlank()) "Not Set" else "••••••••", icon = Icons.Default.Key, onClick = { 
+        // Show a simple dialog or navigate to a new screen. For simplicity, let's add a state for a key dialog.
+        showKeyDialog = true
+    })
     MenuItem(title = "Account", icon = Icons.Default.ThumbUp, onClick = { })
 
 
@@ -87,9 +123,41 @@ fun SettingsScreen(navController: NavController = rememberNavController(),
                     viewModel.saveBudget(amount)
                 }
                 showBudgetDialog = false
-
-}
+            }
         )
+
+        if (showKeyDialog) {
+            AlertDialog(
+                onDismissRequest = { showKeyDialog = false },
+                title = { Text("Gemini API Key") },
+                text = {
+                    Column {
+                        Text("Enter your Google AI API key to enable spending insights.")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = apiKey,
+                            onValueChange = { apiKey = it },
+                            label = { Text("API Key") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.saveGeminiApiKey(apiKey)
+                        showKeyDialog = false
+                    }) {
+                        Text("Save")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showKeyDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
 
     }
 }
@@ -103,9 +171,17 @@ fun MenuItem(title: String, value: String? = null, icon: ImageVector ,onClick: (
     ) {
         Icon(icon, contentDescription = title, tint = Color.Black)
         Spacer(modifier = Modifier.width(16.dp))
-        Text(title, modifier = Modifier.weight(1f), fontSize = 16.sp)
+        Text(
+            text = title, 
+            modifier = Modifier.weight(1f), 
+            style = MaterialTheme.typography.titleMedium
+        )
         if (value != null) {
-            Text(value, color = Color.Gray)
+            Text(
+                text = value, 
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
             Spacer(modifier = Modifier.width(8.dp))
         }
         Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Arrow")

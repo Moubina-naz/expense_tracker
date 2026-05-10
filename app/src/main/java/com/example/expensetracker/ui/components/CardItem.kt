@@ -42,6 +42,10 @@ import androidx.compose.ui.unit.sp
 import com.example.expensetracker.R
 import com.example.expensetracker.data.models.BudgetStatus
 
+import androidx.compose.runtime.remember
+import com.example.expensetracker.utils.CurrencyManager
+import com.example.expensetracker.data.models.UserPreferences
+
 @Composable
 fun CardItem(
     modifier: Modifier = Modifier,
@@ -58,8 +62,13 @@ fun CardItem(
         else -> (budgetStatus.spent / budgetStatus.budget).toFloat()
     }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val userPrefs = remember { UserPreferences(context) }
+    val currencySymbol = remember(userPrefs.getUserCurrency()) { 
+        CurrencyManager.getCurrencySymbol(userPrefs.getUserCurrency())
+    }
+
     val remaining = budgetStatus.budget - budgetStatus.spent
-    val balanceFormatted = "₹${"%,.0f".format(remaining.coerceAtLeast(0.0))}"
     val warningColor = if (isOverBudget) Color.Red else MaterialTheme.colorScheme.error
     Column(
         modifier = modifier
@@ -132,7 +141,7 @@ fun CardItem(
                 Text(
                     text = "${(progress * 100).toInt()}% budget spent",
                     color = if (progress > 0.7f) Color.Red else Color.White,
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.align(Alignment.End)
                 )
             }
@@ -152,10 +161,16 @@ fun BudgetCard(
         else -> (budgetStatus.spent / budgetStatus.budget).toFloat()
     }
 
-    val remaining = budgetStatus.budget - budgetStatus.spent
-    val balanceFormatted = "₹${"%,.0f".format(remaining.coerceAtLeast(0.0))}"
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val userPrefs = remember { UserPreferences(context) }
+    val currencySymbol = remember(userPrefs.getUserCurrency()) { 
+        CurrencyManager.getCurrencySymbol(userPrefs.getUserCurrency())
+    }
 
-    // ---- UI ----
+    val remaining = budgetStatus.budget - budgetStatus.spent
+    val balanceFormatted = "${currencySymbol}${"%,.0f".format(remaining.coerceAtLeast(0.0))}"
+
+
     Card(
         modifier = modifier
             .width(350.dp)   // Fixed width for compact look
@@ -179,9 +194,9 @@ fun BudgetCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "Budget for this month",
-                            color = Color.Gray,
-                            fontSize = 14.sp
+                            text = "Budget for this month",
+                            color = Color.Gray.copy(alpha = 0.8f),
+                            style = MaterialTheme.typography.labelMedium
                         )
 
                         // Percentage badge - no align modifier needed
@@ -189,10 +204,10 @@ fun BudgetCard(
                             text = "${(progress * 100).toInt()}% spent",
                             color = when {
                                 progress >= 1f -> Color.Red
-                                progress > 0.7f -> Color(0xFFFF6D00) // Orange instead of Yellow
+                                progress > 0.7f -> Color(0xFFFF6D00)
                                 else -> Color.Gray
                             },
-                            fontSize = 12.sp
+                            style = MaterialTheme.typography.labelSmall
                         )
                     }
 
@@ -205,8 +220,8 @@ fun BudgetCard(
                             .height(8.dp),
                         color = when {
                             progress >= 1f -> Color.Red
-                            progress > 0.7f -> Color(0xFFFF6D00) // Orange
-                            else -> Color(0xFF2DB794) // Green
+                            progress > 0.7f -> Color(0xFFFFAA00) // Orange
+                            else -> Color(0xFF2DB7B2) // Green
                         },
                         trackColor = Color.LightGray.copy(alpha = 0.4f)
                     )
@@ -217,20 +232,25 @@ fun BudgetCard(
 }
 
 @Composable
-fun cardrowitem(modifier: Modifier, title :String, amount:String, icon:Int) {
+fun cardrowitem(modifier: Modifier, title: String, amount: String, icon: Int) {
     Column(modifier = modifier) {
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
                 painter = painterResource(id = icon),
-                contentDescription = null
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
             )
-            Spacer(modifier = Modifier.size(8.dp))
-            Text(text = title, color = Color.White, fontSize = 24.sp,fontWeight = FontWeight.Bold)
-
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = title, 
+                color = Color.White.copy(alpha = 0.8f), 
+                style = MaterialTheme.typography.labelLarge
+            )
         }
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = amount,
-            fontSize = 20.sp,
+            style = MaterialTheme.typography.displaySmall,
             color = Color.White
         )
     }

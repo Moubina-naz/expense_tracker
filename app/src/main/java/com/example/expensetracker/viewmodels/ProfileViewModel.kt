@@ -1,110 +1,76 @@
 package com.example.expensetracker.viewmodels
 
-import androidx.lifecycle.ViewModel
-import com.example.expensetracker.data.api.RetrofitInstance
-import com.example.expensetracker.data.models.PasswordChange
-import com.example.expensetracker.data.models.User
+import android.app.Application
+import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.expensetracker.data.models.PasswordChangeRequest
-import com.example.expensetracker.data.models.UserResponse
-import com.example.expensetracker.data.models.UserUpdateRequest
+import com.example.expensetracker.data.models.UserPreferences
+import com.example.expensetracker.utils.CurrencyManager
+import com.example.expensetracker.data.Room.Graph
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class ProfileViewModel : ViewModel() {
-    private val _userProfile = MutableStateFlow<UserResponse?>(null)
-    val userProfile: StateFlow<UserResponse?> = _userProfile
+class ProfileViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val userPreferences = UserPreferences(application)
+
+    private val _userName = MutableStateFlow(userPreferences.getUserName())
+    val userName: StateFlow<String> = _userName
+    
+    private val _currency = MutableStateFlow(userPreferences.getUserCurrency())
+    val currency: StateFlow<String> = _currency
 
     private val _updateState = MutableStateFlow<UpdateState>(UpdateState.Idle)
     val updateState: StateFlow<UpdateState> = _updateState
-
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage
-
-    init {
-        loadUserProfile()
-    }
-
-    fun loadUserProfile() {
-        viewModelScope.launch {
-            try {
-                val response = RetrofitInstance.api.getProfile()
-                if (response.isSuccessful) {
-                    _userProfile.value = response.body()
-                } else {
-                    _errorMessage.value = "Failed to load profile: ${response.errorBody()?.string()}"
-                }
-            } catch (e: Exception) {
-                _errorMessage.value = "Network error: ${e.message}"
-            }
-        }
-    }
-
-    fun updateProfile(
-        email: String,
-        username: String,
-        firstName: String,
-        lastName: String
-    ) {
+    
+    fun updateCurrency(newCurrency: String) {
         viewModelScope.launch {
             _updateState.value = UpdateState.Loading
             try {
-                val updateRequest = UserUpdateRequest(
-                    email = email,
-                    first_name = firstName,
-                    last_name = lastName
-                )
-
-                val response = RetrofitInstance.api.updateProfile(updateRequest)
-
-                if (response.isSuccessful) {
-                    _userProfile.value = response.body()
-                    _updateState.value = UpdateState.Success
-                    _errorMessage.value = null
-                    // Reload profile to get updated data
-                    loadUserProfile()
-                } else {
-                    _updateState.value = UpdateState.Error
-                    _errorMessage.value = "Update failed: ${response.errorBody()?.string()}"
+                val oldCurrency = userPreferences.getUserCurrency()
+                if (oldCurrency != newCurrency) {
+                    // Try to fetch latest rates first
+                    CurrencyManager.fetchLatestRates()
+                    
+                    val rate = CurrencyManager.convert(1.0, oldCurrency, newCurrency)
+                    Graph.transactionRepository.convertCurrencyInDb(rate)
+                    
+                    // Save the new currency
+                    val name = userPreferences.getUserName()
+                    val age = "" // Keep existing or handle properly
+                    val country = "" // Keep existing or handle properly
+                    userPreferences.saveUserInfo(name, age, country, newCurrency)
+                    
+                    _currency.value = newCurrency
                 }
+                _updateState.value = UpdateState.Success
             } catch (e: Exception) {
+                Log.e("ProfileViewModel", "Error updating currency: ${e.message}")
                 _updateState.value = UpdateState.Error
-                _errorMessage.value = "Network error: ${e.message}"
             }
         }
     }
 
-    fun changePassword(oldPassword: String, newPassword: String) {
+    fun updateProfileInfo(name: String, age: String, country: String, currency: String) {
         viewModelScope.launch {
             _updateState.value = UpdateState.Loading
             try {
-                val passwordChange = PasswordChangeRequest(
-                    old_password = oldPassword,
-                    new_password = newPassword
-                )
-
-                val response = RetrofitInstance.api.changePassword(passwordChange)
-
-                if (response.isSuccessful) {
-                    _updateState.value = UpdateState.Success
-                    _errorMessage.value = "Password changed successfully"
-                    // Clear password fields
-                    // You might want to navigate back or show success message
-                } else {
-                    _updateState.value = UpdateState.Error
-                    _errorMessage.value = "Password change failed: ${response.errorBody()?.string()}"
+                val oldCurrency = userPreferences.getUserCurrency()
+                if (oldCurrency != currency) {
+                    CurrencyManager.fetchLatestRates()
+                    val rate = CurrencyManager.convert(1.0, oldCurrency, currency)
+                    Graph.transactionRepository.convertCurrencyInDb(rate)
                 }
+
+                userPreferences.saveUserInfo(name, age, country, currency)
+                _userName.value = name
+                _currency.value = currency
+                _updateState.value = UpdateState.Success
             } catch (e: Exception) {
                 _updateState.value = UpdateState.Error
-                _errorMessage.value = "Network error: ${e.message}"
             }
         }
-    }
-
-    fun clearMessages() {
-        _errorMessage.value = null
-        _updateState.value = UpdateState.Idle
     }
 }
 
@@ -114,4 +80,3 @@ sealed class UpdateState {
     object Success : UpdateState()
     object Error : UpdateState()
 }
-

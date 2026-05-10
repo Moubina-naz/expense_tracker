@@ -152,6 +152,11 @@ class TransactionRepository(private val dao: TransactionDao) {
     fun getTransactionsByCategory(category: String): Flow<List<TransactionEntity>> {
         return dao.getTransactionsByCategory(category)
     }
+
+    suspend fun convertCurrencyInDb(rate: Double) {
+        dao.convertAllTransactions(rate)
+        dao.convertAllBudgets(rate)
+    }
 }
 
 

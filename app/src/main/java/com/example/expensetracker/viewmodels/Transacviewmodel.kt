@@ -20,8 +20,8 @@ import com.example.expensetracker.data.models.MonthlyData
 
 import com.example.expensetracker.data.models.TransactionEntity
 import com.example.expensetracker.data.Room.TransactionRepository
-import com.example.expensetracker.data.api.DjangoFeatureRepository
 import com.example.expensetracker.data.models.WeeklyData
+import com.example.expensetracker.data.models.UserPreferences
 import com.example.expensetracker.ui.components.formatDateSlash
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -50,9 +50,9 @@ import java.util.Locale
 
 
  open class Transacviewmodel(
-    private val repository : TransactionRepository = Graph.transactionRepository,
-    private val djangoRepo: DjangoFeatureRepository = Graph.djangoFeatureRepository)
+    private val repository : TransactionRepository = Graph.transactionRepository)
     : ViewModel() {
+     private val userPreferences = UserPreferences(Graph.context)
 
      var transacTitlestate by mutableStateOf("")
      var transacAmountstate by mutableStateOf("")
@@ -94,6 +94,14 @@ import java.util.Locale
          selectedCategory = null
      }
 
+     fun saveGeminiApiKey(key: String) {
+         userPreferences.saveGeminiApiKey(key)
+     }
+
+     fun getApiKey(): String? {
+         return userPreferences.getGeminiApiKey()
+     }
+
      // REVERT TO OLD SIMPLE VERSION
      fun addTransaction(transaction: TransactionEntity) {
          viewModelScope.launch(Dispatchers.IO) {
@@ -112,11 +120,13 @@ import java.util.Locale
          }
      }
 
-     // REVERT TO OLD SIMPLE VERSION
      fun updateTransaction(transaction: TransactionEntity) {
          viewModelScope.launch {
              val categoryName = selectedCategory?.name ?: "Other"
              val transactionToUpdate = transaction.copy(
+                 title = transacTitlestate, // Use form field instead of parameter
+                 amount = transacAmountstate.toDoubleOrNull() ?: 0.0, // Use form field instead of parameter
+                 date = transacDatestate, // Use form field instead of parameter
                  icon = selectedCategory?.iconRes ?: transaction.icon,
                  category = categoryName
              )
@@ -124,7 +134,6 @@ import java.util.Locale
          }
      }
 
-     // REVERT TO OLD SIMPLE VERSION
      fun deleteTransaction(transaction: TransactionEntity) {
          viewModelScope.launch {
              repository.deleteTransaction(transaction)
@@ -186,14 +195,14 @@ import java.util.Locale
      val searchResults: StateFlow<List<TransactionEntity>> = _searchResults.asStateFlow()
 
      init {
-         // Initialize with all transactions
+
          viewModelScope.launch {
              repository.getTransaction().collect { transactions ->
                  _searchResults.value = transactions
              }
          }
 
-         // Setup search debouncing
+
          setupSearch()
      }
 
@@ -214,22 +223,21 @@ import java.util.Locale
 
          try {
              val results = if (query.isBlank()) {
-                 // Get all transactions
+
                  repository.getTransaction().first()
              } else {
-                 // Perform search
+
                  val searchTerm = "%${query.replace(" ", "%")}%"
                  println("🔍 SEARCH TERM: '$searchTerm'")
 
-                 // Use first() to get a single result instead of Flow
                  repository.searchTransactions(searchTerm).first()
              }
 
              _searchResults.value = results
-             println("✅ SEARCH COMPLETE: Found ${results.size} results")
+             println("SEARCH COMPLETE: Found ${results.size} results")
 
          } catch (e: Exception) {
-             println("❌ SEARCH ERROR: ${e.message}")
+             println(" SEARCH ERROR: ${e.message}")
              _searchResults.value = emptyList()
          } finally {
              _isSearching.value = false
@@ -240,8 +248,7 @@ import java.util.Locale
      fun updateSearchQuery(newQuery: String) {
          _searchQuery.value = newQuery
      }
-     // KEEP ALL YOUR PERFECT ANALYTICS CODE EXACTLY AS IS
-     // PIECHARTSTATS - UNCHANGED
+
      private fun getCurrentMonthYear(): String {
          val calendar = Calendar.getInstance()
          val month = String.format("%02d", calendar.get(Calendar.MONTH) + 1)
@@ -412,7 +419,7 @@ import java.util.Locale
      }
 
 
-     /*fun emergencyClearAllTransactions() {
+     fun emergencyClearAllTransactions() {
          viewModelScope.launch(Dispatchers.IO) {
              // Get all transactions and delete them
              val allTransactions = repository.getTransaction().first()
@@ -421,7 +428,7 @@ import java.util.Locale
              }
              Log.d("CLEANUP", "Deleted ${allTransactions.size} transactions")
          }
-     }*/
+     }
  }
 
 

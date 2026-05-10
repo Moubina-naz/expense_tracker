@@ -29,10 +29,15 @@ fun UpdateTransactions(
     navController: NavController  // Single instance
 
     ) {
-    LaunchedEffect(id) {
+    /*LaunchedEffect(id) {
         viewModel.getTransacById(id)?.let { transaction ->
             viewModel.loadTransactionForEditing(transaction)
         }
+    }*/
+    LaunchedEffect(Unit) {
+        println("DEBUG: UpdateTransactions opened for ID: $id")
+        println("DEBUG: Current editing ID: ${viewModel.currentEditingId}")
+        println("DEBUG: Form title: ${viewModel.transacTitlestate}")
     }
 
         Box(modifier = Modifier.fillMaxSize()) {
@@ -48,16 +53,15 @@ fun UpdateTransactions(
                     onBackClick = { navController.popBackStack()})
             }
 
-            // Form Content (PUSHED UP using padding from top instead of align bottom)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 150.dp) // 👈 Try 120.dp or less to move form up
+                    .padding(top = 150.dp)
             ) {
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f), // 👈 makes the form fill remaining space
+                        .weight(1f),
                     shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
                     shadowElevation = 2.dp,
                     color = Color.White
@@ -65,7 +69,8 @@ fun UpdateTransactions(
                     Dataform(
                         id = id,
                         viewmodel = viewModel,
-                        navController = navController
+                        navController = navController,
+                        isUpdate = true
                     )
                 }
             }

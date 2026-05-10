@@ -53,6 +53,11 @@ import com.example.expensetracker.ui.components.BudgetCard
 import com.example.expensetracker.ui.components.ExpenseItem
 import com.example.expensetracker.viewmodels.Transacviewmodel
 import com.example.expensetracker.ui.components.CardItem
+import com.example.expensetracker.data.models.UserPreferences
+import com.example.expensetracker.ui.components.AiInsightsCard
+import com.example.expensetracker.data.models.AiDashboardScrn
+import com.example.expensetracker.viewmodels.AiViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -63,8 +68,15 @@ fun HomeScreen(navController: NavController = rememberNavController(),
     val context = LocalContext.current
     var showBudgetDialog by remember { mutableStateOf(false) }
     var budgetAmount by remember { mutableStateOf("") }
-
+    
+    val aiViewModel: AiViewModel = viewModel()
     val budgetStatus by viewModel.budgetStatus.collectAsState()
+    
+    val userPreferences = remember { UserPreferences(context) }
+    val userName = remember { userPreferences.getUserName() }
+    val currencySymbol = remember { 
+        com.example.expensetracker.utils.CurrencyManager.getCurrencySymbol(userPreferences.getUserCurrency()) 
+    }
 
     LaunchedEffect(Unit) {
         viewModel.loadBudgetStatus()
@@ -80,64 +92,73 @@ fun HomeScreen(navController: NavController = rememberNavController(),
     val (balanceFormatted, expenseFormatted) = remember(budgetStatus) {
         val balance = (budgetStatus.budget - budgetStatus.spent).coerceAtLeast(0.0)
         val expense = budgetStatus.spent
-        Pair("₹${"%,.0f".format(balance)}", "₹${"%,.0f".format(expense)}")
+        Pair("${currencySymbol}${"%,.0f".format(balance)}", "${currencySymbol}${"%,.0f".format(expense)}")
     }
 
     Scaffold(
         modifier = Modifier.fillMaxSize().background(Color(0xFFA5BFC4)),
     ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
-            // HEADER SECTION - FIXED
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp, start = 10.dp, end = 10.dp)
-                // ❌ REMOVED: .height(IntrinsicSize.Min)
-            ) {
-                Column {
-                    Text(
-                        text = "BudgetWise",
-                        fontSize = 30.sp,
-                        color = Color(0xFF00332e),
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.size(4.dp))
-                    Text(
-                        text = "Welcome Back naz",
-                        fontSize = 18.sp,
-                        color = Color(0xFF757575),
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
+        val allTransactions by viewModel.transactionList.collectAsState()
+        val recentTransactions by viewModel.recentTransactions.collectAsState(initial = emptyList())
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // BUDGET CARD SECTION - FIXED
-            Box(
-                modifier = Modifier.fillMaxWidth()
-                // ❌ REMOVED: .height(IntrinsicSize.Min)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp, start = 16.dp, end = 16.dp)
                 ) {
-                    BudgetCard(
-                        isOverBudget = budgetStatus.spent > budgetStatus.budget,
-                        budgetStatus = budgetStatus
-                    )
+                    Column {
+                        Text(
+                            text = "BudgetWise",
+                            style = MaterialTheme.typography.displayMedium,
+                            color = Color(0xFF00332e)
+                        )
+                        Spacer(modifier = Modifier.size(4.dp))
+                        Text(
+                            text = "Welcome back, $userName!",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color(0xFF757575)
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            item {
+                Spacer(modifier = Modifier.height(20.dp))
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        BudgetCard(
+                            isOverBudget = budgetStatus.spent > budgetStatus.budget,
+                            budgetStatus = budgetStatus
+                        )
+                    }
+                }
+            }
 
-            // BALANCE/EXPENSE SECTION
-            ExpenseBalanceSection(balance = balanceFormatted, expense = expenseFormatted)
+            item {
+                Spacer(modifier = Modifier.height(20.dp))
+                ExpenseBalanceSection(balance = balanceFormatted, expense = expenseFormatted)
+            }
 
-            Spacer(modifier = Modifier.height(30.dp))
+            item {
+                Spacer(modifier = Modifier.height(20.dp))
+                AiInsightsCard(
+                    transactions = allTransactions,
+                    aiViewModel = aiViewModel,
+                    onClick = { navController.navigate(AiDashboardScrn) }
+                )
+            }
 
-            // RECENT TRANSACTIONS SECTION
-            Column {
+            item {
+                Spacer(modifier = Modifier.height(20.dp))
                 var isClicked by remember { mutableStateOf(false) }
                 Row(
                     modifier = Modifier
@@ -148,12 +169,11 @@ fun HomeScreen(navController: NavController = rememberNavController(),
                 ) {
                     Text(
                         text = "Recent Transactions",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleLarge
                     )
                     Text(
                         text = "See all",
-                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.labelLarge,
                         color = if (isClicked) MaterialTheme.colorScheme.primary else Color.Black,
                         modifier = Modifier.clickable {
                             isClicked = !isClicked
@@ -161,13 +181,17 @@ fun HomeScreen(navController: NavController = rememberNavController(),
                         }
                     )
                 }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
-                val recentTransactions = viewModel.recentTransactions.collectAsState(initial = emptyList())
-                LazyColumn(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    items(recentTransactions.value, key = { it.id }) { transaction ->
-                        ExpenseItem(transaction = transaction, onClick = {})
-                    }
+            items(recentTransactions, key = { it.id }) { transaction ->
+                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    ExpenseItem(transaction = transaction, onClick = {})
                 }
+            }
+            
+            item {
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
 
@@ -225,40 +249,13 @@ fun ArcBg(modifier: Modifier = Modifier, name: String) {
             Spacer(modifier = Modifier.size(8.dp))
             Text(
                 text = name,
-                fontSize = 20.sp,  // Use sp instead of dp for text size
-                color = Color.White,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.White
             )
         }
         Image(painter = painterResource(id = R.drawable.more_horiz), contentDescription = null)
     }
-}                   /*Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(350.dp)
-                            .size(150.dp)
-                            .align(Alignment.Center)
-                            .offset(y = 130.dp)
-                    ) {
-
-                        CardItem(
-                            modifier = Modifier,
-                            onMenuClick = {
-                                budgetAmount = if (budgetStatus.budget > 0.0) {
-                                    budgetStatus.budget.toString()
-                                } else {
-                                    ""
-                                }
-                                showBudgetDialog = true
-                            },
-                            userName = "Naz",
-                            balance = balanceFormatted,
-                            expense = expenseFormatted,
-                            isOverBudget = budgetStatus.spent > budgetStatus.budget,
-                            budgetStatus = budgetStatus
-                        )
-
-                    }*/
+}
 @Composable
 fun StatCard(
     title: String,
@@ -270,10 +267,19 @@ fun StatCard(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .background(bgColor, shape = RoundedCornerShape(12.dp))
-            .padding(vertical = 16.dp)
+            .padding(vertical = 16.dp, horizontal = 8.dp)
     ) {
-        Text(title, fontWeight = FontWeight.Medium, fontSize = 16.sp)
-        Text(amount, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.DarkGray
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = amount,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 /* @Composable

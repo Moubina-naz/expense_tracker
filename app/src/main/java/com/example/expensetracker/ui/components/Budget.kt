@@ -23,6 +23,12 @@ fun MonthlyBudgetDialog(
     onSave: () -> Unit
 ) {
     if (showDialog) {
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val currencySymbol = androidx.compose.runtime.remember { 
+            com.example.expensetracker.utils.CurrencyManager.getCurrencySymbol(
+                com.example.expensetracker.data.models.UserPreferences(context).getUserCurrency()
+            )
+        }
         AlertDialog(
             onDismissRequest = onDismiss,
             title = {
@@ -43,7 +49,7 @@ fun MonthlyBudgetDialog(
                     OutlinedTextField(
                         value = budgetAmount,
                         onValueChange = onBudgetAmountChange,
-                        label = { "Amount (₹)" },
+                        label = { Text("Amount ($currencySymbol)") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number

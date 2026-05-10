@@ -3,13 +3,12 @@ package com.example.expensetracker.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.expensetracker.data.api.DjangoFeatureRepository
 import com.example.expensetracker.data.models.TransactionEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class SearchViewModel(private val djangoRepo: DjangoFeatureRepository) : ViewModel() {
+class SearchViewModel() : ViewModel() {
 
     /*private val _searchResults = MutableStateFlow<List<TransactionEntity>>(emptyList())
     val searchResults: StateFlow<List<TransactionEntity>> = _searchResults

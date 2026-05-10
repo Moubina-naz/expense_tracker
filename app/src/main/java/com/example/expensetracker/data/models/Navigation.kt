@@ -18,17 +18,15 @@ import com.example.expensetracker.ui.screens.AddTransactions
 import com.example.expensetracker.ui.screens.Alltransaction
 import com.example.expensetracker.ui.screens.CurrencySelectionMinimal
 import com.example.expensetracker.ui.screens.DashboardScreen
+import com.example.expensetracker.ui.screens.AiInsightsDashboard
 import com.example.expensetracker.ui.screens.EditProfileScreen
 import com.example.expensetracker.ui.screens.HomeScreen
-import com.example.expensetracker.ui.screens.LoginScreen
 import com.example.expensetracker.ui.screens.SettingsScreen
 import com.example.expensetracker.ui.screens.SearchTransactions
-import com.example.expensetracker.ui.screens.SignUpScreen
 import com.example.expensetracker.ui.screens.SplashScreen
 import com.example.expensetracker.ui.screens.UpdateTransactions
-import com.example.expensetracker.viewmodels.LoginViewModel
+import com.example.expensetracker.ui.screens.UserInfoScreen
 import com.example.expensetracker.viewmodels.ProfileViewModel
-import com.example.expensetracker.viewmodels.SignupViewModel
 import com.example.expensetracker.viewmodels.Transacviewmodel
 import kotlinx.serialization.Serializable
 
@@ -55,12 +53,6 @@ object DashboardTransac
 object StartupScrn
 
 @Serializable
-object SignUpScrn
-
-@Serializable
-object LoginScrn
-
-@Serializable
 object SettingsScrn
 
 @Serializable
@@ -70,6 +62,9 @@ object CurrencyScrn
 object EditProfileScrn
 @Serializable
 object SplashScrn
+
+@Serializable
+object AiDashboardScrn
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Navigation(viewModel: Transacviewmodel = viewModel(),
@@ -79,11 +74,10 @@ fun Navigation(viewModel: Transacviewmodel = viewModel(),
     val currentBackStackEntry = navController.currentBackStackEntryAsState().value
     val currentRoute = currentBackStackEntry?.destination?.route ?: ""
 
-    // Check if current route is an auth screen
+    // Check if current route is an auth screen/startup
     val shouldShowBottomBar = when {
-        currentRoute.contains("Login", ignoreCase = true) -> false
-        currentRoute.contains("SignUp", ignoreCase = true) -> false
         currentRoute.contains("Splash", ignoreCase = true) -> false
+        currentRoute.contains("Startup", ignoreCase = true) -> false
         else -> true
     }
 
@@ -99,18 +93,8 @@ fun Navigation(viewModel: Transacviewmodel = viewModel(),
             startDestination = SplashScrn,//SignUpScrn,
             modifier = Modifier.padding(innerPadding)
         ) {
-            // AUTH SCREENS (no bottom bar)
-
-            composable<CurrencyScrn> {
-                CurrencySelectionMinimal(navController = navController)
-            }
-            composable<LoginScrn> {
-                val loginViewModel: LoginViewModel = viewModel()
-                LoginScreen(navController = navController, viewModel = loginViewModel)
-            }
-            composable<SignUpScrn> {
-                val signupViewModel: SignupViewModel = viewModel()
-                SignUpScreen(navController = navController, viewModel = signupViewModel)
+            composable<StartupScrn> {
+                UserInfoScreen(navController = navController)
             }
 
             // MAIN APP SCREENS (with bottom bar)
@@ -151,6 +135,12 @@ fun Navigation(viewModel: Transacviewmodel = viewModel(),
             }
             composable<SplashScrn> {
                 SplashScreen(navController = navController)
+            }
+            composable<CurrencyScrn> {
+                CurrencySelectionMinimal(navController = navController)
+            }
+            composable<AiDashboardScrn> {
+                AiInsightsDashboard(navController = navController, viewModel = viewModel)
             }
         }
     }

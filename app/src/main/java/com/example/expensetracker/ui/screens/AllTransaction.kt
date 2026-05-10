@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SwipeToDismissBox
@@ -61,16 +63,13 @@ fun Alltransaction(
                     modifier = Modifier.clickable { navController.popBackStack() })
 
 
-                Column() {
+                Column {
                     Text(
                         text = "Expense History",
-                        //modifier = Modifier.padding (top = 20.dp),
-                        fontSize = 24.sp,  // Use sp instead of dp for text size
-                        color = Color.Black,
-                        //fontWeight = FontWeight.Bold
+                        style = androidx.compose.material3.MaterialTheme.typography.headlineLarge,
+                        color = Color.Black
                     )
                     Spacer(modifier = Modifier.size(8.dp))
-
                 }
                 Box {
                     IconButton(onClick = {navController.navigate(SearchTransac)}) {
@@ -85,6 +84,7 @@ fun Alltransaction(
 
                 }
             }
+
 
                     Spacer(modifier = Modifier.height(16.dp))
                     // Transactions List
@@ -134,8 +134,9 @@ fun Alltransaction(
                                 ExpenseItem(
                                     transaction = transaction,
                                     onClick = {
-                                        viewModel.loadTransactionForEditing(transaction)
-                                        navController.navigate(UpdateTransac(transaction.id))
+                                        navController.navigate(UpdateTransac(transaction.id)) {
+                                            viewModel.loadTransactionForEditing(transaction)
+                                        }
                                     }
                                 )
                             }

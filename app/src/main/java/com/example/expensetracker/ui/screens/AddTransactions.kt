@@ -28,6 +28,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 
 
 import androidx.compose.material3.OutlinedTextField
@@ -95,7 +96,7 @@ fun AddTransactions(
             // Title in the center
             Text(
                 text = "Add Expense",
-                fontSize = 24.sp,
+                style = MaterialTheme.typography.headlineLarge,
                 color = Color.Black,
                 modifier = Modifier.align(Alignment.Center)
             )
@@ -129,12 +130,19 @@ fun AddTransactions(
 fun Dataform(
     modifier: Modifier = Modifier,
     id: Long,
-    viewmodel: Transacviewmodel, // Non-nullable
+    viewmodel: Transacviewmodel,
     navController: NavController,
-    transaction: Transaction? = null  // null means new transaction
+    transaction: Transaction? = null ,
+    isUpdate: Boolean = false
 
     ) {
     val scrollState = rememberScrollState()
+
+    val context = LocalContext.current
+    val userPreferences = remember { com.example.expensetracker.data.models.UserPreferences(context) }
+    val currencySymbol = remember(userPreferences.getUserCurrency()) { 
+        com.example.expensetracker.utils.CurrencyManager.getCurrencySymbol(userPreferences.getUserCurrency()) 
+    }
 
     Column(
         modifier = Modifier
@@ -152,7 +160,7 @@ fun Dataform(
         Spacer(modifier = Modifier.height(20.dp))
 
         transacTextfeild(
-            lable = "Amount",
+            lable = "Amount ($currencySymbol)",
             value = viewmodel.transacAmountstate,
             onValueChange = { viewmodel.onTransacAmountChange(it) },
             keyboardType = KeyboardType.Number
@@ -180,7 +188,6 @@ fun Dataform(
 
         Spacer(modifier = Modifier.height(30.dp)) // Add more space before button
 
-        val context = LocalContext.current
         val t = TransactionEntity(
             id = viewmodel.currentEditingId ?: 0L,
             title = viewmodel.transacTitlestate,
@@ -196,12 +203,15 @@ fun Dataform(
                     viewmodel.transacAmountstate.isNotEmpty() &&
                     viewmodel.transacDatestate.isNotEmpty()) {
 
-                    viewmodel.addTransaction(t)
-                    Toast.makeText(
-                        context,
-                        if (id != 0L) "Transaction Updated" else "Transaction Added",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    if (id != 0L) {
+                        // UPDATE EXISTING TRANSACTION
+                        viewmodel.updateTransaction(t) // ← Call update instead of add
+                        Toast.makeText(context, "Transaction Updated", Toast.LENGTH_SHORT).show()
+                    } else {
+                        // ADD NEW TRANSACTION
+                        viewmodel.addTransaction(t)
+                        Toast.makeText(context, "Transaction Added", Toast.LENGTH_SHORT).show()
+                    }
 
                     navController.navigate(AllTransac) {
                         popUpTo(HomeScrn) { inclusive = false }
@@ -218,7 +228,7 @@ fun Dataform(
         ) {
             Text(
                 text = if (id != 0L) "Update" else "Save",
-                fontSize = 18.sp
+                style = MaterialTheme.typography.titleMedium
             )
         }
 
@@ -249,8 +259,8 @@ fun transacTextfeild(
         label = {
             Text(
                 text = lable,
-                style = TextStyle(color = Color.Black),
-                fontSize = 16.sp  // Explicitly set fontSize to resolve ambiguity
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black
             )
         },
         modifier = Modifier.fillMaxWidth(),
@@ -292,10 +302,8 @@ fun Addbg( title:  String,onBackClick: () -> Unit,expanded: MutableState<Boolean
         Column{
             Text(
                 text = title,
-                //modifier = Modifier.padding (top = 20.dp),
-                fontSize = 24.sp,  // Use sp instead of dp for text size
-                color = Color.White,
-                //fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.headlineLarge,
+                color = Color.White
             )
             Spacer(modifier = Modifier.size(8.dp))
 

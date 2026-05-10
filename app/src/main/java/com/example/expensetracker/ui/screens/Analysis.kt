@@ -1,6 +1,5 @@
 package com.example.expensetracker.ui.screens
 
-import StatisticsScreen
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -18,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -28,16 +28,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.expensetracker.R
 import com.example.expensetracker.viewmodels.Transacviewmodel
 import com.example.expensetracker.ui.components.LineChartScreen
+import com.example.expensetracker.ui.components.StatisticsScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -45,54 +48,41 @@ fun DashboardScreen(
     viewModel: Transacviewmodel,
     navController: NavController
 ) {
-
-
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF7F8FA)) // Light grayish background from image
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 60.dp, start = 16.dp, end = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-
             Icon(
                 painter = painterResource(id = R.drawable.arrowbackios),
-                contentDescription = "",
-                modifier = Modifier.clickable { navController.popBackStack() })
+                contentDescription = "Back",
+                tint = Color.Black,
+                modifier = Modifier.size(24.dp).clickable { navController.popBackStack() }
+            )
 
+            Text(
+                text = "Expense Statistics",
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.Black,
+                fontWeight = FontWeight.Bold
+            )
 
-            Column() {
-                Text(
-                    text = "Expense Statistics",
-                    //modifier = Modifier.padding (top = 20.dp),
-                    fontSize = 24.sp,  // Use sp instead of dp for text size
-                    color = Color.Black,
-                    //fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-
-            }
-            Box {
-                IconButton(onClick = { true }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.more_horiz),
-                        contentDescription = "More Options",
-                        tint = Color.Black
-                    )
-                }
-
-                // Anchor menu to the box
-                DropdownMenu(
-                    expanded = false,
-                    onDismissRequest = { false },
-                    modifier = Modifier.background(Color.White) // Fix invisible menu
-                ) {
-
-                }
-
-            }
+            Icon(
+                painter = painterResource(id = R.drawable.more_horiz),
+                contentDescription = "More Options",
+                tint = Color.Black,
+                modifier = Modifier.size(28.dp)
+            )
         }
-        Spacer(modifier = Modifier.size(20.dp))
+
+        Spacer(modifier = Modifier.size(32.dp))
 
         var selectedIndex by remember { mutableStateOf(0) }
         val options = listOf("Breakdown", "Trend")
@@ -100,13 +90,12 @@ fun DashboardScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp) // Fixed height
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 24.dp)
         ) {
             SingleChoiceSegmentedButtonRow(
-                modifier = Modifier.fillMaxWidth()
-            )
-            {
+                modifier = Modifier.fillMaxWidth(),
+                space = 0.dp
+            ) {
                 options.forEachIndexed { index, label ->
                     SegmentedButton(
                         shape = SegmentedButtonDefaults.itemShape(
@@ -116,46 +105,26 @@ fun DashboardScreen(
                         onClick = { selectedIndex = index },
                         selected = index == selectedIndex,
                         colors = SegmentedButtonDefaults.colors(
-                            activeContainerColor = colorResource(id = R.color.base),
+                            activeContainerColor = Color(0xFF649594), // Teal color from image
                             inactiveContainerColor = Color.White,
                             activeContentColor = Color.White,
-                            inactiveContentColor = colorResource(id = R.color.base)
-
+                            inactiveContentColor = Color(0xFF649594),
+                            activeBorderColor = Color(0xFF649594),
+                            inactiveBorderColor = Color(0xFF649594)
                         )
                     ) {
-                        Text(label)
+                        Text(label, style = MaterialTheme.typography.titleMedium)
                     }
                 }
             }
         }
-        Spacer(modifier = Modifier.size(16.dp))
-        val transactions by viewModel.transactionList.collectAsState(initial = emptyList())
+
+        Spacer(modifier = Modifier.size(24.dp))
 
         when (selectedIndex) {
-            0 -> StatisticsScreen(viewModel = viewModel, navController)
-            1 -> LineChartScreen(viewModel)
-
-            /*              LineChartScreen(
-                  modifier = Modifier
-                      .fillMaxWidth()
-                      .height(300.dp),
-                  timescale = TimeScale.WEEKLY,
-                  points = transactions
-                      .groupBy { LocalDate.parse(it.date) } // Group by parsed LocalDate directly
-                      .map { (date, transactionGroup) ->
-                          DataPoint(
-                              transactionGroup.sumOf { it.amount.toDouble() }.toFloat(),
-                              date
-                          )
-                      }
-                      .sortedBy { it.date },
-                  //onPointClicked = { point -> }
-              )
-              }
- */
+            0 -> StatisticsScreen(viewModel = viewModel, navController = navController)
+            1 -> LineChartScreen(viewmodel = viewModel)
         }
-
-
     }
 }
 
