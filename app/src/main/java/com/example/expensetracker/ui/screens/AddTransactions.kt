@@ -80,35 +80,40 @@ fun AddTransactions(
         viewModel.clearFields()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        BudgetWiseTopBar(
-            title = "Add Expense",
-            showBack = true,
-            onBackClick = { navController.popBackStack() }
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Form Content
-        Dataform(
-            id = 0L,
-            viewmodel = viewModel,
-            navController = navController,
-            modifier = Modifier.padding(horizontal = 24.dp)
-        )
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Background Image
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+                .align(Alignment.TopCenter)
+        ) {
+            Addbg(
+                "Add Transaction",
+                onBackClick = { navController.popBackStack()})
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 150.dp) // 👈 Try 120.dp or less to move form up
+        ) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f), // 👈 makes the form fill remaining space
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                shadowElevation = 2.dp,
+                color = Color.White
+              ) {
+                Dataform(
+                    id = 0L,
+                    viewmodel = viewModel,
+                    navController = navController
+                )
+            }
+        }
     }
 }
-
-
-
-
-
-
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -256,11 +261,11 @@ fun transacTextfeild(
             unfocusedTextColor = SoftDarkGray,
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = TealPrimary,
+            focusedIndicatorColor = colorResource(id = R.color.base), // Use base color from resources or a defined constant
             unfocusedIndicatorColor = MutedGray.copy(alpha = 0.3f),
-            focusedLabelColor = TealPrimary,
+            focusedLabelColor = colorResource(id = R.color.base),
             unfocusedLabelColor = MutedGray,
-            cursorColor = TealPrimary
+            cursorColor = colorResource(id = R.color.base)
         ))
 
 }
