@@ -1,6 +1,7 @@
 package com.example.expensetracker.ui.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -18,6 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.expensetracker.R
+import com.example.expensetracker.ui.components.BudgetWiseTopBar
+import com.example.expensetracker.ui.theme.MutedGray
+import com.example.expensetracker.ui.theme.SoftDarkGray
+import com.example.expensetracker.ui.theme.TealPrimary
 import com.example.expensetracker.viewmodels.ProfileViewModel
 import com.example.expensetracker.viewmodels.UpdateState
 import kotlinx.coroutines.launch
@@ -32,7 +37,8 @@ fun EditProfileScreen(
     val updateState by viewModel.updateState.collectAsState()
 
     val prefs = context.getSharedPreferences("user_prefs", android.content.Context.MODE_PRIVATE)
-    val userPreferences = remember { com.example.expensetracker.data.models.UserPreferences(context) }
+    val userPreferences =
+        remember { com.example.expensetracker.data.models.UserPreferences(context) }
 
     var name by remember { mutableStateOf(userPreferences.getUserName()) }
     var age by remember { mutableStateOf(prefs.getString("user_age", "") ?: "") }
@@ -51,94 +57,100 @@ fun EditProfileScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
     ) {
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.arrowbackios),
-                contentDescription = "Back",
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .clickable { navController.popBackStack() }
-            )
-
-            Text(
-                text = "Edit Profile",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            text = "Personal Information",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
+        BudgetWiseTopBar(
+            title = "Edit Profile",
+            showBack = true,
+            onBackClick = { navController.popBackStack() }
         )
 
-        ProfileTextField(label = "Name", value = name, onValueChange = { name = it })
-        Spacer(modifier = Modifier.height(16.dp))
-        ProfileTextField(label = "Age", value = age, onValueChange = { age = it })
-        Spacer(modifier = Modifier.height(16.dp))
-        ProfileTextField(label = "Country", value = country, onValueChange = { country = it })
-        Spacer(modifier = Modifier.height(16.dp))
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = it }
-        ) {
-            OutlinedTextField(
-                value = "$currency - ${com.example.expensetracker.utils.CurrencyManager.getCurrencyName(currency)}",
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Currency") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                modifier = Modifier.fillMaxWidth().menuAnchor()
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+            Text(
+                text = "Personal Information",
+                style = MaterialTheme.typography.headlineSmall,
+                color = SoftDarkGray
             )
-            ExposedDropdownMenu(
+            Spacer(modifier = Modifier.height(24.dp))
+
+            ProfileTextField(label = "Name", value = name, onValueChange = { name = it })
+            Spacer(modifier = Modifier.height(16.dp))
+            ProfileTextField(label = "Age", value = age, onValueChange = { age = it })
+            Spacer(modifier = Modifier.height(16.dp))
+            ProfileTextField(label = "Country", value = country, onValueChange = { country = it })
+            Spacer(modifier = Modifier.height(16.dp))
+            ExposedDropdownMenuBox(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onExpandedChange = { expanded = it }
             ) {
-                currencies.forEach { selectionOption ->
-                    DropdownMenuItem(
-                        text = { Text("$selectionOption - ${com.example.expensetracker.utils.CurrencyManager.getCurrencyName(selectionOption)}") },
-                        onClick = {
-                            currency = selectionOption
-                            expanded = false
-                        }
-                    )
+                OutlinedTextField(
+                    value = "$currency - ${
+                        com.example.expensetracker.utils.CurrencyManager.getCurrencyName(
+                            currency
+                        )
+                    }",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Currency", color = MutedGray) },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                        focusedTextColor = SoftDarkGray,
+                        unfocusedTextColor = SoftDarkGray,
+                        focusedBorderColor = TealPrimary,
+                        unfocusedBorderColor = MutedGray.copy(alpha = 0.3f),
+                        focusedLabelColor = TealPrimary,
+                        unfocusedLabelColor = MutedGray
+                    ),
+                    modifier = Modifier.fillMaxWidth().menuAnchor()
+                )
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    currencies.forEach { selectionOption ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    "$selectionOption - ${
+                                        com.example.expensetracker.utils.CurrencyManager.getCurrencyName(
+                                            selectionOption
+                                        )
+                                    }",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            },
+                            onClick = {
+                                currency = selectionOption
+                                expanded = false
+                            }
+                        )
+                    }
                 }
             }
-        }
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-        Button(
-            onClick = {
-                viewModel.updateProfileInfo(name, age, country, currency)
-            },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = colorResource(id = R.color.base)
-            ),
-            enabled = updateState != UpdateState.Loading && name.isNotBlank() && age.isNotBlank() && country.isNotBlank() && currency.isNotBlank()
-        ) {
-            if (updateState == UpdateState.Loading) {
-                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
-            } else {
-                Text("Update Profile", fontSize = 18.sp)
+            Button(
+                onClick = {
+                    viewModel.updateProfileInfo(name, age, country, currency)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = TealPrimary
+                ),
+                enabled = updateState != UpdateState.Loading && name.isNotBlank() && age.isNotBlank() && country.isNotBlank() && currency.isNotBlank()
+            ) {
+                if (updateState == UpdateState.Loading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                } else {
+                    Text("Update Profile", style = MaterialTheme.typography.titleLarge, color = Color.White)
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(50.dp))
+        }
     }
 }
 
@@ -151,8 +163,17 @@ fun ProfileTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label) },
+        label = { Text(label, color = MutedGray) },
         modifier = Modifier.fillMaxWidth(),
-        singleLine = true
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = SoftDarkGray,
+            unfocusedTextColor = SoftDarkGray,
+            focusedBorderColor = TealPrimary,
+            unfocusedBorderColor = MutedGray.copy(alpha = 0.3f),
+            focusedLabelColor = TealPrimary,
+            unfocusedLabelColor = MutedGray,
+            cursorColor = TealPrimary
+        )
     )
 }

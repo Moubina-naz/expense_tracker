@@ -60,6 +60,9 @@ import com.example.expensetracker.data.models.HomeScrn
 import com.example.expensetracker.ui.components.PickDate
 import com.example.expensetracker.R
 import com.example.expensetracker.data.models.TransactionEntity
+import com.example.expensetracker.ui.components.BudgetWiseTopBar
+import com.example.expensetracker.ui.theme.MutedGray
+import com.example.expensetracker.ui.theme.SoftDarkGray
 import com.example.expensetracker.viewmodels.Transacviewmodel
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -77,45 +80,27 @@ fun AddTransactions(
         viewModel.clearFields()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Background Image
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 60.dp, start = 16.dp, end = 16.dp)
-        ) {
-            // Back Arrow on the left
-            Icon(
-                painter = painterResource(id = R.drawable.arrowbackios),
-                contentDescription = "Back",
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .clickable { /* navController.popBackStack() */ }
-            )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        BudgetWiseTopBar(
+            title = "Add Expense",
+            showBack = true,
+            onBackClick = { navController.popBackStack() }
+        )
 
-            // Title in the center
-            Text(
-                text = "Add Expense",
-                style = MaterialTheme.typography.headlineLarge,
-                color = Color.Black,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
-        // Form Content (PUSHED UP using padding from top instead of align bottom)
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 150.dp) // 👈 Try 120.dp or less to move form up
-        ) {
+        Spacer(modifier = Modifier.height(24.dp))
 
-                Dataform(
-                    id = 0L,
-                    viewmodel = viewModel,
-                    navController = navController
-                )
-            }
-        }
-
+        // Form Content
+        Dataform(
+            id = 0L,
+            viewmodel = viewModel,
+            navController = navController,
+            modifier = Modifier.padding(horizontal = 24.dp)
+        )
+    }
 }
 
 
@@ -157,7 +142,7 @@ fun Dataform(
             onValueChange = { viewmodel.onTransacTitleChange(it) }
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(28.dp))
 
         transacTextfeild(
             lable = "Amount ($currencySymbol)",
@@ -166,7 +151,7 @@ fun Dataform(
             keyboardType = KeyboardType.Number
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(28.dp))
 
         PickDate(
             label = "Date",
@@ -176,7 +161,7 @@ fun Dataform(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(28.dp))
 
         // Remove the fixed height constraint and let it take needed space
         CategoryDropdownGrid(
@@ -186,7 +171,7 @@ fun Dataform(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(30.dp)) // Add more space before button
+        Spacer(modifier = Modifier.height(32.dp)) // Add more space before button
 
         val t = TransactionEntity(
             id = viewmodel.currentEditingId ?: 0L,
@@ -260,22 +245,22 @@ fun transacTextfeild(
             Text(
                 text = lable,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black
+                color = MutedGray
             )
         },
         modifier = Modifier.fillMaxWidth(),
 
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         colors = TextFieldDefaults.colors(
-            focusedTextColor = Color.Black,
-            unfocusedTextColor = Color.Black,
+            focusedTextColor = SoftDarkGray,
+            unfocusedTextColor = SoftDarkGray,
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = Color.Black,
-            unfocusedIndicatorColor = Color.Gray,
-            focusedLabelColor = Color.Black,
-            unfocusedLabelColor = Color.Black,
-            cursorColor = Color.Black
+            focusedIndicatorColor = TealPrimary,
+            unfocusedIndicatorColor = MutedGray.copy(alpha = 0.3f),
+            focusedLabelColor = TealPrimary,
+            unfocusedLabelColor = MutedGray,
+            cursorColor = TealPrimary
         ))
 
 }

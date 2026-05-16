@@ -39,7 +39,9 @@ import com.example.expensetracker.R
 import com.example.expensetracker.data.models.SearchTransac
 import com.example.expensetracker.viewmodels.Transacviewmodel
 import com.example.expensetracker.data.models.UpdateTransac
+import com.example.expensetracker.ui.components.BudgetWiseTopBar
 import com.example.expensetracker.ui.components.ExpenseItem
+import com.example.expensetracker.ui.theme.SoftDarkGray
 
 @Composable
 fun Alltransaction(
@@ -47,104 +49,89 @@ fun Alltransaction(
     viewModel: Transacviewmodel,
     navController: NavController
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Background Image
-        Column(modifier = Modifier.fillMaxSize()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 60.dp, start = 16.dp, end = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-
-                Icon(
-                    painter = painterResource(id = R.drawable.arrowbackios),
-                    contentDescription = "",
-                    modifier = Modifier.clickable { navController.popBackStack() })
-
-
-                Column {
-                    Text(
-                        text = "Expense History",
-                        style = androidx.compose.material3.MaterialTheme.typography.headlineLarge,
-                        color = Color.Black
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(androidx.compose.material3.MaterialTheme.colorScheme.background)
+    ) {
+        BudgetWiseTopBar(
+            title = "Expense History",
+            showBack = true,
+            onBackClick = { navController.popBackStack() },
+            trailingAction = {
+                IconButton(onClick = { navController.navigate(SearchTransac) }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_search_24),
+                        contentDescription = "Search",
+                        tint = SoftDarkGray
                     )
-                    Spacer(modifier = Modifier.size(8.dp))
-                }
-                Box {
-                    IconButton(onClick = {navController.navigate(SearchTransac)}) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_search_24),
-                            contentDescription = "More Options",
-                            tint = Color.Black
-                        )
-                    }
-
-
-
                 }
             }
+        )
 
+        Spacer(modifier = Modifier.height(24.dp))
 
-                    Spacer(modifier = Modifier.height(16.dp))
-                    // Transactions List
-                    val transactionList = viewModel.transactionList.collectAsState(initial = emptyList())
-                    LazyColumn(modifier = Modifier.padding(horizontal = 16.dp)) {
-                        items(transactionList.value, key = { it.id }) { transaction ->
+        // Transactions List
+        val transactionList = viewModel.transactionList.collectAsState(initial = emptyList())
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+        ) {
+            items(transactionList.value, key = { it.id }) { transaction ->
+                val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { dismissValue ->
+                    if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                        viewModel.deleteTransaction(transaction)
+                        true
+                    } else {
+                        false
+                    }
+                })
 
-
-                            val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { dismissValue ->
-                                if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                                    viewModel.deleteTransaction(transaction)
-                                    true
-                                } else {
-                                    false
-                                }
-                            })
-
-                            // If swiped to delete, call delete
-                            if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart &&
-                                dismissState.targetValue == SwipeToDismissBoxValue.EndToStart
-                            ) {
-                                LaunchedEffect(transaction) {
-                                    if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) {
-                                        viewModel.deleteTransaction(transaction)
-                                    }
-                                }
-                            }
-
-                            SwipeToDismissBox(
-                                state = dismissState,
-                                enableDismissFromStartToEnd = false, // Only allow swipe left to delete
-                                backgroundContent = {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .padding(end = 16.dp),
-                                        contentAlignment = Alignment.CenterEnd
-                                    ) {
-                                        androidx.compose.material3.Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = "Delete",
-                                            tint = colorResource(id = R.color.card)
-                                        )
-                                    }
-                                }
-                            ) {
-                                ExpenseItem(
-                                    transaction = transaction,
-                                    onClick = {
-                                        navController.navigate(UpdateTransac(transaction.id)) {
-                                            viewModel.loadTransactionForEditing(transaction)
-                                        }
-                                    }
-                                )
-                            }
+                // If swiped to delete, call delete
+                if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart &&
+                    dismissState.targetValue == SwipeToDismissBoxValue.EndToStart
+                ) {
+                    LaunchedEffect(transaction) {
+                        if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) {
+                            viewModel.deleteTransaction(transaction)
                         }
+                    }
+                }
+
+                SwipeToDismissBox(
+                    state = dismissState,
+                    enableDismissFromStartToEnd = false, // Only allow swipe left to delete
+                    backgroundContent = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(end = 16.dp),
+                            contentAlignment = Alignment.CenterEnd
+                        ) {
+                            androidx.compose.material3.Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = Color.Red
+                            )
+                        }
+                    }
+                ) {
+                    Box(modifier = Modifier.padding(vertical = 4.dp)) {
+                        ExpenseItem(
+                            transaction = transaction,
+                            onClick = {
+                                navController.navigate(UpdateTransac(transaction.id)) {
+                                    viewModel.loadTransactionForEditing(transaction)
+                                }
+                            }
+                        )
                     }
                 }
             }
         }
+    }
+}
 
 
 

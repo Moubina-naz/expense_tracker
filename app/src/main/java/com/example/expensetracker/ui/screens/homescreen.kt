@@ -58,6 +58,8 @@ import com.example.expensetracker.ui.components.AiInsightsCard
 import com.example.expensetracker.data.models.AiDashboardScrn
 import com.example.expensetracker.viewmodels.AiViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.expensetracker.ui.components.BudgetWiseTopBar
+import com.example.expensetracker.ui.theme.MutedGray
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -96,7 +98,7 @@ fun HomeScreen(navController: NavController = rememberNavController(),
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize().background(Color(0xFFA5BFC4)),
+        modifier = Modifier.fillMaxSize()
     ) { innerPadding ->
         val allTransactions by viewModel.transactionList.collectAsState()
         val recentTransactions by viewModel.recentTransactions.collectAsState(initial = emptyList())
@@ -107,49 +109,41 @@ fun HomeScreen(navController: NavController = rememberNavController(),
                 .padding(innerPadding)
         ) {
             item {
+                BudgetWiseTopBar(
+                    title = "BudgetWise",
+                    trailingAction = {
+                        Text(
+                            text = "Hi, $userName!",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MutedGray
+                        )
+                    }
+                )
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 20.dp, start = 16.dp, end = 16.dp)
+                        .padding(horizontal = 24.dp)
                 ) {
-                    Column {
-                        Text(
-                            text = "BudgetWise",
-                            style = MaterialTheme.typography.displayMedium,
-                            color = Color(0xFF00332e)
-                        )
-                        Spacer(modifier = Modifier.size(4.dp))
-                        Text(
-                            text = "Welcome back, $userName!",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color(0xFF757575)
-                        )
-                    }
+                    BudgetCard(
+                        isOverBudget = budgetStatus.spent > budgetStatus.budget,
+                        budgetStatus = budgetStatus
+                    )
                 }
             }
 
             item {
-                Spacer(modifier = Modifier.height(20.dp))
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        BudgetCard(
-                            isOverBudget = budgetStatus.spent > budgetStatus.budget,
-                            budgetStatus = budgetStatus
-                        )
-                    }
+                Spacer(modifier = Modifier.height(28.dp))
+                Box(modifier = Modifier.padding(horizontal = 24.dp)) {
+                    ExpenseBalanceSection(balance = balanceFormatted, expense = expenseFormatted)
                 }
             }
 
             item {
-                Spacer(modifier = Modifier.height(20.dp))
-                ExpenseBalanceSection(balance = balanceFormatted, expense = expenseFormatted)
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(28.dp))
                 AiInsightsCard(
                     transactions = allTransactions,
                     aiViewModel = aiViewModel,
@@ -158,34 +152,32 @@ fun HomeScreen(navController: NavController = rememberNavController(),
             }
 
             item {
-                Spacer(modifier = Modifier.height(20.dp))
-                var isClicked by remember { mutableStateOf(false) }
+                Spacer(modifier = Modifier.height(28.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 24.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "Recent Transactions",
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.headlineSmall
                     )
                     Text(
                         text = "See all",
                         style = MaterialTheme.typography.labelLarge,
-                        color = if (isClicked) MaterialTheme.colorScheme.primary else Color.Black,
+                        color = TealPrimary,
                         modifier = Modifier.clickable {
-                            isClicked = !isClicked
                             navController.navigate(AllTransac)
                         }
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
             items(recentTransactions, key = { it.id }) { transaction ->
-                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                Box(modifier = Modifier.padding(horizontal = 24.dp)) {
                     ExpenseItem(transaction = transaction, onClick = {})
                 }
             }

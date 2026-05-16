@@ -38,9 +38,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.expensetracker.R
+import com.example.expensetracker.ui.components.BudgetWiseTopBar
 import com.example.expensetracker.viewmodels.Transacviewmodel
 import com.example.expensetracker.ui.components.LineChartScreen
 import com.example.expensetracker.ui.components.StatisticsScreen
+import com.example.expensetracker.ui.theme.SoftDarkGray
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -51,38 +53,23 @@ fun DashboardScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF7F8FA)) // Light grayish background from image
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 60.dp, start = 16.dp, end = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.arrowbackios),
-                contentDescription = "Back",
-                tint = Color.Black,
-                modifier = Modifier.size(24.dp).clickable { navController.popBackStack() }
-            )
+        BudgetWiseTopBar(
+            title = "Expense Statistics",
+            showBack = true,
+            onBackClick = { navController.popBackStack() },
+            trailingAction = {
+                Icon(
+                    painter = painterResource(id = R.drawable.more_horiz),
+                    contentDescription = "More",
+                    tint = SoftDarkGray,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        )
 
-            Text(
-                text = "Expense Statistics",
-                style = MaterialTheme.typography.headlineSmall,
-                color = Color.Black,
-                fontWeight = FontWeight.Bold
-            )
-
-            Icon(
-                painter = painterResource(id = R.drawable.more_horiz),
-                contentDescription = "More Options",
-                tint = Color.Black,
-                modifier = Modifier.size(28.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.size(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         var selectedIndex by remember { mutableStateOf(0) }
         val options = listOf("Breakdown", "Trend")

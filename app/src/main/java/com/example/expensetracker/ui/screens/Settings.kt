@@ -3,6 +3,7 @@ package com.example.expensetracker.ui.screens
 import MonthlyBudgetDialog
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -28,6 +29,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.expensetracker.R
 import com.example.expensetracker.data.models.CurrencyScrn
 import com.example.expensetracker.data.models.EditProfileScrn
+import com.example.expensetracker.ui.components.BudgetWiseTopBar
+import com.example.expensetracker.ui.theme.MutedGray
+import com.example.expensetracker.ui.theme.SoftDarkGray
 import com.example.expensetracker.viewmodels.Transacviewmodel
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -62,55 +66,45 @@ fun SettingsScreen(navController: NavController = rememberNavController(),
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        // Profile Header
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 50.dp, start = 16.dp, end = 16.dp)
-        ) {
-            // Back Arrow on the left
-            Icon(
-                painter = painterResource(id = R.drawable.arrowbackios),
-                contentDescription = "Back",
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .clickable { /* navController.popBackStack() */ }
-            )
-
-            // Title in the center
-            Text(
-                text = "Settings",
-                style = MaterialTheme.typography.headlineLarge,
-                color = Color.Black,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
+        BudgetWiseTopBar(
+            title = "Settings",
+            showBack = true,
+            onBackClick = { navController.popBackStack() }
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+            MenuItem(title = "Profile", icon = Icons.Default.Person, onClick = {
+                navController.navigate(EditProfileScrn)
+            })
 
-    MenuItem(title = "Profile", icon = Icons.Default.Person, onClick = { navController.navigate(
-            EditProfileScrn
-        ) })
+            MenuItem(
+                title = "Currency",
+                value = currentCurrency,
+                icon = Icons.Default.AttachMoney,
+                onClick = { navController.navigate(CurrencyScrn) })
 
-    MenuItem(title = "Currency", value = currentCurrency, icon = Icons.Default.AttachMoney, onClick = { navController.navigate(CurrencyScrn)})
-    
-    val budgetValue = if (budgetStatus.budget > 0) "$currencySymbol${budgetStatus.budget.toInt()}" else "Not Set"
-    MenuItem(
-        title = "Budget", 
-        value = budgetValue, 
-        icon = if (budgetStatus.budget > 0) Icons.Default.NotificationsActive else Icons.Default.NotificationsOff, 
-        onClick = { showBudgetDialog = true }
-    )
-    
-    MenuItem(title = "AI Insights Key", value = if (userPrefs.getGeminiApiKey().isNullOrBlank()) "Not Set" else "••••••••", icon = Icons.Default.Key, onClick = { 
-        // Show a simple dialog or navigate to a new screen. For simplicity, let's add a state for a key dialog.
-        showKeyDialog = true
-    })
-    MenuItem(title = "Account", icon = Icons.Default.ThumbUp, onClick = { })
+            val budgetValue = if (budgetStatus.budget > 0) "$currencySymbol${budgetStatus.budget.toInt()}" else "Not Set"
+            MenuItem(
+                title = "Budget",
+                value = budgetValue,
+                icon = if (budgetStatus.budget > 0) Icons.Default.NotificationsActive else Icons.Default.NotificationsOff,
+                onClick = { showBudgetDialog = true }
+            )
 
+            MenuItem(
+                title = "AI Insights Key",
+                value = if (userPrefs.getGeminiApiKey().isNullOrBlank()) "Not Set" else "••••••••",
+                icon = Icons.Default.Key,
+                onClick = {
+                    showKeyDialog = true
+                })
+            
+            MenuItem(title = "Support", icon = Icons.Default.ThumbUp, onClick = { })
+        }
 
         MonthlyBudgetDialog(
             showDialog = showBudgetDialog,
@@ -129,17 +123,21 @@ fun SettingsScreen(navController: NavController = rememberNavController(),
         if (showKeyDialog) {
             AlertDialog(
                 onDismissRequest = { showKeyDialog = false },
-                title = { Text("Gemini API Key") },
+                title = { Text("Gemini API Key", style = MaterialTheme.typography.titleLarge) },
                 text = {
                     Column {
-                        Text("Enter your Google AI API key to enable spending insights.")
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "Enter your Google AI API key to enable spending insights.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
                         OutlinedTextField(
                             value = apiKey,
                             onValueChange = { apiKey = it },
                             label = { Text("API Key") },
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
+                            singleLine = true,
+                            shape = MaterialTheme.shapes.medium
                         )
                     }
                 },
@@ -158,7 +156,6 @@ fun SettingsScreen(navController: NavController = rememberNavController(),
                 }
             )
         }
-
     }
 }
 @Composable
@@ -166,25 +163,30 @@ fun MenuItem(title: String, value: String? = null, icon: ImageVector ,onClick: (
     Row(
         modifier = Modifier.clickable { onClick() }
             .fillMaxWidth()
-            .padding(vertical = 12.dp),
+            .padding(vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = title, tint = Color.Black)
+        Icon(icon, contentDescription = title, tint = SoftDarkGray, modifier = Modifier.size(22.dp))
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = title, 
             modifier = Modifier.weight(1f), 
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleLarge
         )
         if (value != null) {
             Text(
                 text = value, 
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
+                color = MutedGray
             )
             Spacer(modifier = Modifier.width(8.dp))
         }
-        Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Arrow")
+        Icon(
+            imageVector = Icons.Default.KeyboardArrowRight, 
+            contentDescription = "Arrow", 
+            tint = MutedGray,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
 
